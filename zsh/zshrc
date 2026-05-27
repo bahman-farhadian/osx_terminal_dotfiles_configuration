@@ -135,7 +135,7 @@ alias t='tmux'
 # name to the list below — it must support "tool completion zsh".
 _zsh_load_completions() {
     local tool
-    for tool in kubectl helm flux kind k3d docker; do
+    for tool in kubectl helm flux kind k3d docker ollama; do
         command -v "$tool" &>/dev/null && source <("$tool" completion zsh 2>/dev/null)
     done
     # extend completion to the k alias for kubectl

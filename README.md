@@ -46,14 +46,76 @@ brew install vim wget curl jq btop
 ```
 
 > **zsh completions**: Tools installed via brew with a `_toolname` file in `site-functions` load automatically.
-> For tools installed outside brew, add the tool name to the loop in `.zshrc`:
+> For tools installed outside brew (or brew formulas that skip zsh completions), add the tool name to the loop in `.zshrc`:
 >
 > ```zsh
-> for tool in kubectl helm flux kind k3d docker YOUR_TOOL; do
+> for tool in kubectl helm flux kind k3d docker ollama YOUR_TOOL; do
 > ```
 >
-> The tool must support `tool completion zsh`. If it uses a different method (e.g., sources a file), add a
+> The tool must support `tool completion zsh` (kubectl, helm, flux, kind, k3d, docker, and **ollama** all do).
+> If it uses a different method (e.g., sources a file), add a
 > `source /path/to/YOUR_TOOL_completion.zsh` line inside `_zsh_load_completions` instead.
+
+---
+
+## Suggested Packages
+
+Install all at once or pick what you need:
+
+```bash
+# System monitoring
+brew install btop          # interactive resource monitor (replaces htop)
+brew install duf           # disk usage with a pretty table (replaces df)
+brew install ncdu          # interactive ncurses disk-usage explorer (replaces du)
+
+# Network tools
+brew install sshuttle      # transparent VPN-over-SSH proxy
+brew install ipcalc        # IP address / subnet calculator
+
+# Terminal multiplexer
+brew install tmux           # required for these dotfiles
+
+# Editors
+brew install vim
+brew install neovim
+
+# Utilities
+brew install unar          # universal unarchiver (rar, 7z, zip, …)
+brew install wget
+brew install jq            # JSON processor
+brew install curl
+
+# AI / LLM
+brew install ollama        # run large language models locally
+```
+
+One-liner to install all of the above:
+
+```bash
+brew install btop duf ncdu sshuttle ipcalc tmux vim neovim unar wget jq curl ollama
+```
+
+---
+
+## VSCode
+
+### ARM installer — `code` command missing from PATH
+
+Microsoft's `.pkg` ARM installer for Apple Silicon does **not** automatically add the `code` CLI to your PATH. Fix it from inside VSCode:
+
+1. Open VSCode.
+2. Open the Command Palette: `Cmd+Shift+P`
+3. Run **Shell Command: Install 'code' command in PATH**
+
+VSCode writes a symlink to `/usr/local/bin/code` and the command works in any new terminal session.
+
+> **Manual fallback** — if the palette command is unavailable, add this to your `~/.zshrc` or `~/.zsh_aliases`:
+>
+> ```zsh
+> export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+> ```
+>
+> Then `source ~/.zshrc` (or open a new tab).
 
 ---
 
