@@ -1,0 +1,41 @@
+# Ghostty config — tmux handles panes and scrollback
+
+# Catppuccin Mocha
+background = 1e1e2e
+foreground = cdd6f4
+palette = 0=#45475a
+palette = 1=#f38ba8
+palette = 2=#a6e3a1
+palette = 3=#f9e2af
+palette = 4=#89b4fa
+palette = 5=#f5c2e7
+palette = 6=#94e2d5
+palette = 7=#bac2de
+palette = 8=#585b70
+palette = 9=#f38ba8
+palette = 10=#a6e3a1
+palette = 11=#f9e2af
+palette = 12=#89b4fa
+palette = 13=#f5c2e7
+palette = 14=#94e2d5
+palette = 15=#a6adc8
+
+background-opacity = 0.8
+macos-icon = paper
+
+# Title bar — requires full Ghostty restart to apply
+macos-titlebar-style = hidden
+
+# Vertical bar cursor
+cursor-style = bar
+cursor-style-blink = true
+
+# Disabled — use tmux copy-mode for scrolling
+scrollback-limit = 0
+
+# Required for tmux Option+WASD and Option+1-7 bindings
+macos-option-as-alt = true
+
+# Disable built-in splits — tmux handles all panes
+keybind = cmd+d=ignore
+keybind = cmd+shift+d=ignore
