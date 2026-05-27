@@ -1,0 +1,94 @@
+# ~/.bashrc (macOS)
+
+# If not running interactively, bail
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# History
+HISTCONTROL=ignoreboth
+HISTSIZE=100000
+HISTFILESIZE=200000
+shopt -s histappend
+shopt -s checkwinsize
+
+# Homebrew PATH
+if [ -f /opt/homebrew/bin/brew ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f /usr/local/bin/brew ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# PATH extras
+export PATH="$HOME/.local/bin:$PATH"
+
+# Editor
+export EDITOR=vim
+export VISUAL=vim
+
+# Catppuccin Mocha colours (true-colour)
+_R='\[\e[38;2;243;139;168m\]'   # Red    (root alarm)
+_G='\[\e[38;2;166;227;161m\]'   # Green  (user)
+_Y='\[\e[38;2;249;226;175m\]'   # Yellow (host)
+_B='\[\e[38;2;137;180;250m\]'   # Blue   (path)
+_M='\[\e[38;2;203;166;247m\]'   # Mauve  (decorators)
+_T='\[\e[38;2;205;214;244m\]'   # Text   (local time)
+_C='\[\e[38;2;148;226;213m\]'   # Teal   (UTC time)
+_K='\[\e[38;2;137;220;235m\]'   # Sky    (kubectl context)
+_RST='\[\e[0m\]'
+
+# Prompt — two lines:
+#   [bash] user@host:/path  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00  k8s:cluster
+#   $ (green ok / red error)   ← command starts here
+_set_prompt() {
+    local exit_code=$?
+    local sym_col local_time utc_time kctx kctx_col
+
+    local_time=$(date '+%Y-%m-%d %H:%M:%S')
+    utc_time=$(date -u '+%Y-%m-%d %H:%M:%S')
+
+    # kubectl current context — shows live cluster or "disconnected"
+    if command -v kubectl &>/dev/null; then
+        kctx=$(kubectl config current-context 2>/dev/null)
+        if [ -n "$kctx" ]; then
+            kctx_col="${_K}"
+        else
+            kctx="disconnected"
+            kctx_col="${_R}"
+        fi
+    else
+        kctx="disconnected"
+        kctx_col="${_R}"
+    fi
+
+    if [ $exit_code -eq 0 ]; then
+        sym_col='\[\e[38;2;166;227;161m\]'
+    else
+        sym_col='\[\e[38;2;243;139;168m\]'
+    fi
+
+    if [ "$(id -u)" -eq 0 ]; then
+        PS1="${_R}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}#${_RST} "
+    else
+        PS1="${_G}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}\$${_RST} "
+    fi
+}
+PROMPT_COMMAND='_set_prompt'
+
+# ls colours
+export CLICOLOR=1
+export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
+
+# bash-completion@2 (brew install bash-completion@2)
+if [ -r "$(brew --prefix 2>/dev/null)/etc/profile.d/bash_completion.sh" ]; then
+    . "$(brew --prefix)/etc/profile.d/bash_completion.sh"
+fi
+
+# Aliases
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+# tmux shortcut
+alias t='tmux'

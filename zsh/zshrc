@@ -1,0 +1,145 @@
+# ~/.zshrc (macOS)
+
+# Homebrew PATH
+if [ -f /opt/homebrew/bin/brew ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f /usr/local/bin/brew ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# PATH extras
+export PATH="$HOME/.local/bin:$PATH"
+
+# Editor
+export EDITOR=vim
+export VISUAL=vim
+
+# History
+HISTFILE=~/.zsh_history
+HISTSIZE=100000
+SAVEHIST=100000
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt SHARE_HISTORY
+setopt APPEND_HISTORY
+setopt EXTENDED_HISTORY
+setopt INTERACTIVE_COMMENTS
+
+# Completion
+# brew install zsh-completions zsh-autosuggestions zsh-syntax-highlighting
+autoload -Uz compinit
+
+if type brew &>/dev/null; then
+    FPATH="$(brew --prefix)/share/zsh-completions:$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+fi
+
+# Rebuild .zcompdump at most once per day (-i skips insecure-directory warnings)
+if [ "$(find ~/.zcompdump -mtime +1 2>/dev/null)" ]; then
+    compinit -i
+else
+    compinit -C -i
+fi
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+zstyle ':completion:*:warnings' format '%F{red}No matches for: %d%f'
+
+# zsh-autosuggestions
+if [ -f "$(brew --prefix 2>/dev/null)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    . "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+# zsh-syntax-highlighting (must be sourced last)
+if [ -f "$(brew --prefix 2>/dev/null)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    . "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+
+# ls colours
+export CLICOLOR=1
+export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
+
+# Catppuccin Mocha colours
+_R='%F{#f38ba8}'   # Red    (root alarm)
+_G='%F{#a6e3a1}'   # Green  (user)
+_Y='%F{#f9e2af}'   # Yellow (host)
+_B='%F{#89b4fa}'   # Blue   (path)
+_M='%F{#cba6f7}'   # Mauve  (decorators)
+_T='%F{#cdd6f4}'   # Text   (local time)
+_C='%F{#94e2d5}'   # Teal   (UTC time)
+_K='%F{#89dceb}'   # Sky    (kubectl context)
+_RST='%f'
+
+# Prompt — two lines:
+#   [zsh] user@host:/path  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00  k8s:cluster
+#   $ (green ok / red error)   ← command starts here
+setopt PROMPT_SUBST
+
+_zsh_prompt() {
+    local exit_ok=$?
+    local sym sym_col local_time utc_time kctx kctx_col
+
+    local_time=$(date '+%Y-%m-%d %H:%M:%S')
+    utc_time=$(date -u '+%Y-%m-%d %H:%M:%S')
+
+    # kubectl current context — shows live cluster or "disconnected"
+    if command -v kubectl &>/dev/null; then
+        kctx=$(kubectl config current-context 2>/dev/null)
+        if [ -n "$kctx" ]; then
+            kctx_col="${_K}"
+        else
+            kctx="disconnected"
+            kctx_col="${_R}"
+        fi
+    else
+        kctx="disconnected"
+        kctx_col="${_R}"
+    fi
+
+    if [ $exit_ok -eq 0 ]; then
+        sym_col='%F{#a6e3a1}'
+    else
+        sym_col='%F{#f38ba8}'
+    fi
+
+    if [ "$(id -u)" -eq 0 ]; then
+        sym='#'
+        PROMPT="${_R}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
+${sym_col}${sym}${_RST} "
+    else
+        sym='$'
+        PROMPT="${_G}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
+${sym_col}${sym}${_RST} "
+    fi
+}
+
+precmd_functions+=(_zsh_prompt)
+
+# Key bindings
+bindkey -e
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+
+# Aliases
+if [ -f ~/.zsh_aliases ]; then
+    . ~/.zsh_aliases
+fi
+
+# tmux shortcut
+alias t='tmux'
+
+# Shell completion for CLI tools
+# Brew-installed tools with _toolname in site-functions load automatically via FPATH.
+# For tools outside brew (or brew formulas that skip zsh completions), add the tool
+# name to the list below — it must support "tool completion zsh".
+_zsh_load_completions() {
+    local tool
+    for tool in kubectl helm flux kind k3d docker; do
+        command -v "$tool" &>/dev/null && source <("$tool" completion zsh 2>/dev/null)
+    done
+    # extend completion to the k alias for kubectl
+    command -v kubectl &>/dev/null && compdef k=kubectl
+}
+_zsh_load_completions
+unset -f _zsh_load_completions
