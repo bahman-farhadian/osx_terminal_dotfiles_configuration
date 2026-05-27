@@ -11,7 +11,7 @@ HISTCONTROL=ignoredups:erasedups
 HISTSIZE=100000
 HISTFILESIZE=200000
 shopt -s histappend    # append to history file on exit (don't overwrite)
-shopt -s checkwinsize
+shopt -s checkwinsize          # update LINES/COLUMNS after each command
 
 # Homebrew PATH
 if [ -f /opt/homebrew/bin/brew ]; then

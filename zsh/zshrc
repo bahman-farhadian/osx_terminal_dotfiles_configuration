@@ -31,7 +31,7 @@ setopt HIST_IGNORE_SPACE       # don't record commands prefixed with a space
 setopt SHARE_HISTORY           # share history across all open shells in real time
 setopt APPEND_HISTORY          # append to history file on exit (don't overwrite)
 setopt EXTENDED_HISTORY        # save timestamp + elapsed time with each entry
-setopt INTERACTIVE_COMMENTS
+setopt INTERACTIVE_COMMENTS    # allow # comments in interactive shell
 
 # Completion
 autoload -Uz compinit
