@@ -1,0 +1,12 @@
+finalize dotfiles: ghostty, hushlogin, aliases, and cleanup
+
+- ghostty: Catppuccin Mocha colors inline, hidden title bar, paper icon
+- ghostty: cursor blink on, scrollback off, Cmd+D split disabled (ignore)
+- ghostty: macos-option-as-alt for tmux Option+WASD and layout keys
+- hushlogin: suppress "Last login" on shell open
+- aliases: pubip restored, privip added (all private IPs via ifconfig)
+- zsh/bash: /usr/local/bin in PATH for ollama and VSCode ARM CLI
+- all configs: comments normalized — single short # lines throughout
+- README: rewritten — consistent markdown, short but complete
+- packages: GUI apps from official sites only, brew limited to CLI tools
+

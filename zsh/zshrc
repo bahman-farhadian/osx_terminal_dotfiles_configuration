@@ -11,6 +11,11 @@ fi
 # /usr/local/bin covers ollama (ollama.com) and code (VSCode ARM installer)
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
+# Auto-start tmux when opening Ghostty — attach existing session or create new
+if [ -z "$TMUX" ] && [ -n "$GHOSTTY_RESOURCES_DIR" ]; then
+    exec tmux new-session -A -s main
+fi
+
 # Editor
 export EDITOR=vim
 export VISUAL=vim

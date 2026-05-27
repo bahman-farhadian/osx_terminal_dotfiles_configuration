@@ -1,7 +1,6 @@
 # dotfiles
 
-macOS shell configuration for **zsh**, **bash**, **tmux**, and **Ghostty**.
-Targets a DevOps + Data Engineering workflow. Catppuccin Mocha colour palette throughout.
+macOS dotfiles for **zsh**, **bash**, **tmux**, and **Ghostty** — tuned for DevOps and Data Engineering with a unified Catppuccin Mocha theme.
 
 ---
 
@@ -284,7 +283,9 @@ $
 - **History** — both shells deduplicate globally, not just consecutive commands. Prefix a command with a space to skip recording it.
 - **Ghostty title bar** — `macos-titlebar-style = hidden` requires a full quit and relaunch; config reload alone does not apply it.
 - **Ghostty Cmd+D** — ignored (`keybind = cmd+d=ignore`); tmux handles all splits.
-- **Ghostty app icon** — `macos-icon = paper` applies to the dock / running instance. The icon in `/Applications` is not affected (macOS limitation).
+- **Ghostty padding** — `window-padding-x/y = 12` clears macOS rounded corners.
+- **Ghostty auto-tmux** — `$GHOSTTY_RESOURCES_DIR` is only set inside Ghostty; the shell uses it to auto-attach or create a tmux session on open without affecting other terminals.
+- **Ghostty app icon** — `macos-icon = paper` applies to the dock at runtime only; the `/Applications` icon is part of the app bundle and cannot be changed via config.
 - **Ghostty scrollback** — disabled (`scrollback-limit = 0`); use tmux copy-mode (`fn+↑`) instead.
 - **`macos-option-as-alt`** — Option dead-key characters (`å ß ∂ …`) are unavailable inside Ghostty as a side-effect.
 - `cp` `mv` `mkdir` — wrapped with `-iv` / `-pv` (verbose + interactive).
