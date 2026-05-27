@@ -18,8 +18,10 @@ alias c='clear'
 alias b='btop'
 alias reload='exec $SHELL -l'
 alias path='echo $PATH | tr ":" "\n"'
-alias myip='curl -s https://ipwho.is/ | jq .'
+alias pubip='curl -s https://ipwho.is/ | jq .'
+alias privip="ifconfig | grep 'inet ' | grep -v '127.0.0.1' | awk '{print \$2}'"
 alias pubkey='cat ~/.ssh/id_rsa.pub'
+alias pubkeys='ls ~/.ssh/*.pub 2>/dev/null | xargs -I{} sh -c "echo \"=== {} ===\"; cat {}"'
 alias password='openssl rand -base64 48'
 
 # Editors

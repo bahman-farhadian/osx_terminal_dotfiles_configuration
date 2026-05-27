@@ -6,11 +6,11 @@ case $- in
       *) return;;
 esac
 
-# History
-HISTCONTROL=ignoreboth
+# History — full deduplication (ignoredups + erasedups)
+HISTCONTROL=ignoredups:erasedups
 HISTSIZE=100000
 HISTFILESIZE=200000
-shopt -s histappend
+shopt -s histappend    # append to history file on exit (don't overwrite)
 shopt -s checkwinsize
 
 # Homebrew PATH
@@ -21,7 +21,8 @@ elif [ -f /usr/local/bin/brew ]; then
 fi
 
 # PATH extras
-export PATH="$HOME/.local/bin:$PATH"
+# /usr/local/bin covers ollama (ollama.com) and code (VSCode ARM installer)
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
 # Editor
 export EDITOR=vim
@@ -80,7 +81,7 @@ PROMPT_COMMAND='_set_prompt'
 export CLICOLOR=1
 export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 
-# bash-completion@2 (brew install bash-completion@2)
+# bash-completion@2
 if [ -r "$(brew --prefix 2>/dev/null)/etc/profile.d/bash_completion.sh" ]; then
     . "$(brew --prefix)/etc/profile.d/bash_completion.sh"
 fi

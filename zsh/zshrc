@@ -8,7 +8,8 @@ elif [ -f /usr/local/bin/brew ]; then
 fi
 
 # PATH extras
-export PATH="$HOME/.local/bin:$PATH"
+# /usr/local/bin covers ollama (ollama.com) and code (VSCode ARM installer)
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
 # Editor
 export EDITOR=vim
@@ -18,22 +19,23 @@ export VISUAL=vim
 HISTFILE=~/.zsh_history
 HISTSIZE=100000
 SAVEHIST=100000
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_SPACE
-setopt SHARE_HISTORY
-setopt APPEND_HISTORY
-setopt EXTENDED_HISTORY
+setopt HIST_IGNORE_ALL_DUPS    # remove any older copy when a duplicate is added
+setopt HIST_SAVE_NO_DUPS       # don't write duplicates to the history file on disk
+setopt HIST_FIND_NO_DUPS       # skip duplicates when navigating with ↑/↓
+setopt HIST_IGNORE_SPACE       # don't record commands prefixed with a space
+setopt SHARE_HISTORY           # share history across all open shells in real time
+setopt APPEND_HISTORY          # append to history file on exit (don't overwrite)
+setopt EXTENDED_HISTORY        # save timestamp + elapsed time with each entry
 setopt INTERACTIVE_COMMENTS
 
 # Completion
-# brew install zsh-completions zsh-autosuggestions zsh-syntax-highlighting
 autoload -Uz compinit
 
 if type brew &>/dev/null; then
     FPATH="$(brew --prefix)/share/zsh-completions:$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 fi
 
-# Rebuild .zcompdump at most once per day (-i skips insecure-directory warnings)
+# Rebuild .zcompdump once per day
 if [ "$(find ~/.zcompdump -mtime +1 2>/dev/null)" ]; then
     compinit -i
 else
@@ -129,10 +131,7 @@ fi
 # tmux shortcut
 alias t='tmux'
 
-# Shell completion for CLI tools
-# Brew-installed tools with _toolname in site-functions load automatically via FPATH.
-# For tools outside brew (or brew formulas that skip zsh completions), add the tool
-# name to the list below — it must support "tool completion zsh".
+# CLI tool completions — add tools here that support "tool completion zsh"
 _zsh_load_completions() {
     local tool
     for tool in kubectl helm flux kind k3d docker ollama; do
