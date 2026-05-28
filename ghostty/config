@@ -20,12 +20,13 @@ palette = 13=#f5c2e7
 palette = 14=#94e2d5
 palette = 15=#a6adc8
 
-background-opacity = 0.8
+background-opacity = 0.5
+background-blur = true
 macos-icon = paper
 
 # Padding — clears macOS rounded corners
-window-padding-x = 12
-window-padding-y = 12
+window-padding-x = 0
+window-padding-y = 0
 
 # Title bar — requires full Ghostty restart to apply
 macos-titlebar-style = hidden
