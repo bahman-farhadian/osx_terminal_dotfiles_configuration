@@ -211,8 +211,11 @@ $
 | `Ctrl+b @` | Toggle synchronize-panes |
 | `Option+1–5` | Switch to named layout |
 | `Option+6` / `Option+7` | Next / previous layout |
+| `F12` | Toggle passthrough mode for nested tmux (SSH → remote tmux) |
 
 > `Option+WASD` works because `macos-option-as-alt = true` in Ghostty sends unique Meta sequences (`M-w/a/s/d`) that tmux binds directly.
+
+> **Nested tmux over SSH** — press `F12` before interacting with the remote tmux session. Local tmux stops intercepting all keys (including `fn+↑` copy-mode, `Shift+←/→`, `Ctrl+b`, etc.) and passes everything straight through. The status bar dims to grey and shows `[passthrough]` as a reminder. Press `F12` again to restore local tmux control.
 
 ### Status bar colours
 
