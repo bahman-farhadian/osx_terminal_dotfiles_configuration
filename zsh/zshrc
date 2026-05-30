@@ -149,7 +149,7 @@ alias t='tmux'
 # CLI tool completions — add tools here that support "tool completion zsh"
 _zsh_load_completions() {
     local tool output
-    for tool in kubectl helm flux kind k3d docker ollama; do
+    for tool in kubectl helm flux kind k3d docker; do
         if command -v "$tool" &>/dev/null; then
             output=$("$tool" completion zsh 2>/dev/null)
             [ -n "$output" ] && eval "$output"
@@ -160,3 +160,42 @@ _zsh_load_completions() {
 }
 _zsh_load_completions
 unset -f _zsh_load_completions
+
+# Ollama completion — manual definition with live model name completion
+if command -v ollama &>/dev/null; then
+    _ollama() {
+        local state line
+        _arguments -C \
+            '1:command:->command' \
+            '*:args:->args'
+        case $state in
+            command)
+                local -a cmds
+                cmds=(
+                    'serve:Start ollama server'
+                    'create:Create a model from a Modelfile'
+                    'show:Show information for a model'
+                    'run:Run a model'
+                    'pull:Pull a model from a registry'
+                    'push:Push a model to a registry'
+                    'list:List models'
+                    'ps:List running models'
+                    'cp:Copy a model'
+                    'rm:Remove a model'
+                    'help:Help about any command'
+                )
+                _describe 'command' cmds
+                ;;
+            args)
+                case $words[2] in
+                    run|show|cp|rm|push)
+                        local -a models
+                        models=(${(f)"$(ollama list 2>/dev/null | awk 'NR>1 {print $1}')"})
+                        _describe 'model' models
+                        ;;
+                esac
+                ;;
+        esac
+    }
+    compdef _ollama ollama
+fi

@@ -104,7 +104,7 @@ fi
 # CLI tool completions — add tools here that support "tool completion bash"
 _bash_load_completions() {
     local tool output
-    for tool in kubectl helm flux kind k3d docker ollama; do
+    for tool in kubectl helm flux kind k3d docker; do
         if command -v "$tool" &>/dev/null; then
             output=$("$tool" completion bash 2>/dev/null)
             [ -n "$output" ] && eval "$output"
@@ -115,6 +115,29 @@ _bash_load_completions() {
 }
 _bash_load_completions
 unset -f _bash_load_completions
+
+# Ollama completion — manual definition with live model name completion
+if command -v ollama &>/dev/null; then
+    _ollama_bash() {
+        local cur prev
+        COMPREPLY=()
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        prev="${COMP_WORDS[COMP_CWORD-1]}"
+        local subcmds="serve create show run pull push list ps cp rm help"
+        if [ "$COMP_CWORD" -eq 1 ]; then
+            COMPREPLY=($(compgen -W "$subcmds" -- "$cur"))
+            return
+        fi
+        case "$prev" in
+            run|show|cp|rm|push)
+                local models
+                models=$(ollama list 2>/dev/null | awk 'NR>1 {print $1}')
+                COMPREPLY=($(compgen -W "$models" -- "$cur"))
+                ;;
+        esac
+    }
+    complete -F _ollama_bash ollama
+fi
 
 # Aliases
 if [ -f ~/.bash_aliases ]; then
