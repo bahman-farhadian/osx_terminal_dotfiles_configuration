@@ -39,8 +39,9 @@ chmod go-w "$(brew --prefix)/share"
 brew install bash-completion@2
 ```
 
-> **zsh completions** — brew-installed tools with a `_toolname` completion file load automatically via FPATH.
-> For other tools, add the tool name to the `_zsh_load_completions` loop in `.zshrc` — it must support `tool completion zsh`.
+> **zsh/bash completions** — brew-installed tools with a `_toolname` completion file load automatically via FPATH.
+> For other tools that support `tool completion zsh/bash`, add the tool name to the `_zsh_load_completions` / `_bash_load_completions` loop.
+> **Ollama** uses a hand-written completion function (both shells) that also resolves live model names for `run`, `show`, `cp`, `rm`, and `push`.
 
 ---
 
@@ -169,10 +170,18 @@ Two-line format — command always starts on a clean line:
 $
 ```
 
+When a Python venv is active, the environment name is prepended on the first line:
+
+```
+(.venv) [zsh] user@host:/full/path  Local ...  UTC ...  k8s:...
+$
+```
+
 `k8s:` reads `kubectl config current-context` on every prompt — Sky when connected, Red `disconnected` when not.
 
 | Element | Colour |
 |---|---|
+| `(.venv)` venv indicator | Mauve `#cba6f7` |
 | `[shell]` + username | Green `#a6e3a1` |
 | `[shell]` + username (root) | Red `#f38ba8` |
 | `@` `:` decorators | Mauve `#cba6f7` |
@@ -230,7 +239,7 @@ $
 | `reload` | restart shell |
 | `pubip` | external IP via ipwho.is |
 | `privip` | all private IPs (all interfaces) |
-| `pubkey` | print `~/.ssh/id_rsa.pub` |
+| `pubkey` | print + copy first SSH public key (ed25519 › ecdsa › rsa) |
 | `pubkeys` | print all `~/.ssh/*.pub` |
 | `password` | random base64-48 password |
 
