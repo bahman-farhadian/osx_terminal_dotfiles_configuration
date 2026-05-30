@@ -302,3 +302,67 @@ $
 - **`macos-option-as-alt`** — Option dead-key characters (`å ß ∂ …`) are unavailable inside Ghostty as a side-effect.
 - `cp` `mv` `mkdir` — wrapped with `-iv` / `-pv` (verbose + interactive).
 - `flush-dns` — uses macOS `dscacheutil`.
+
+---
+
+## Testing
+
+Smoke-test checklist after deploying the dotfiles to a new machine.
+
+### Prompt
+
+| # | Test | Expected |
+|---|---|---|
+| 1 | Open a new shell | Two-line prompt: `[zsh] user@host:/path  Local ...  UTC ...  k8s:...` then `$` on line 2 |
+| 2 | Run `false` | `$` turns **red** on next prompt |
+| 3 | Run `true` | `$` returns **green** |
+| 4 | `sudo -i` | Prompt turns **red**, shows `[zsh] root@...`, `#` symbol |
+| 5 | `piv && va` (create + activate venv) | `(.venv)` appears in **mauve** at the very start of line 1 |
+| 6 | `vd` (deactivate) | `(.venv)` disappears immediately |
+
+### SSH public key
+
+| # | Test | Expected |
+|---|---|---|
+| 7 | `pubkey` | Key printed to terminal; `pbpaste` returns the same key without a trailing newline |
+| 8 | `pubkey` with only `id_rsa.pub` present | Falls back to `id_rsa.pub`, prints `[copied to clipboard: id_rsa.pub]` |
+| 9 | `pubkey` with no keys in `~/.ssh/` | Error message: `No public key found ...` |
+
+### Tab completion
+
+| # | Test | Expected |
+|---|---|---|
+| 10 | `ollama <Tab>` | Subcommands listed: `serve`, `run`, `pull`, `list`, etc. |
+| 11 | `ollama run <Tab>` | Locally installed model names from `ollama list` |
+| 12 | `kubectl <Tab>` | kubectl subcommands |
+| 13 | `k <Tab>` | Same as kubectl (alias completion) |
+| 14 | `docker <Tab>` | docker subcommands |
+
+### tmux key bindings
+
+| # | Test | Expected |
+|---|---|---|
+| 15 | Open Ghostty | tmux session named `main` starts or re-attaches automatically |
+| 16 | `Ctrl+b c` → `Shift+←` / `Shift+→` | Cycles between windows without prefix |
+| 17 | `Ctrl+b "` → `Option+S` | Focus moves to lower pane |
+| 18 | `fn+↑` | Enters copy-mode and scrolls up |
+| 19 | `q` or `Escape` | Exits copy-mode |
+| 20 | `Ctrl+b @` | All panes in window sync input; repeat to turn off |
+| 21 | `Option+1` | Switches to even-horizontal layout |
+
+### Nested tmux over SSH
+
+| # | Test | Expected |
+|---|---|---|
+| 22 | SSH to a server, start tmux there, press `fn+↑` | Local tmux intercepts — remote copy-mode does **not** activate |
+| 23 | Press `F12` | Local status bar dims to grey, shows `[passthrough]` |
+| 24 | Press `fn+↑` again | Remote tmux enters copy-mode |
+| 25 | Press `Ctrl+b c` | New window opens in the **remote** tmux session |
+| 26 | Press `F12` again | Local status bar returns to normal colours; local tmux resumes control |
+
+### History
+
+| # | Test | Expected |
+|---|---|---|
+| 27 | Run `echo test` twice | Only one `echo test` entry in `history` output |
+| 28 | Run ` secret` (leading space) | Command is not recorded in history |
