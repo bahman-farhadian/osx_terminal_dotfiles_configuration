@@ -33,6 +33,9 @@ fi
 export EDITOR=vim
 export VISUAL=vim
 
+# Prevent venv from overwriting our custom prompt
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
 # Catppuccin Mocha colours (true-colour)
 _R='\[\e[38;2;243;139;168m\]'   # Red    (root alarm)
 _G='\[\e[38;2;166;227;161m\]'   # Green  (user)
@@ -49,10 +52,17 @@ _RST='\[\e[0m\]'
 #   $ (green ok / red error)   ← command starts here
 _set_prompt() {
     local exit_code=$?
-    local sym_col local_time utc_time kctx kctx_col
+    local sym_col local_time utc_time kctx kctx_col venv_info
 
     local_time=$(date '+%Y-%m-%d %H:%M:%S')
     utc_time=$(date -u '+%Y-%m-%d %H:%M:%S')
+
+    # venv indicator — shown at very start of the prompt line
+    venv_info=""
+    if [ -n "$VIRTUAL_ENV" ]; then
+        local venv_name="${VIRTUAL_ENV_PROMPT:-$(basename "$VIRTUAL_ENV")}"
+        venv_info="${_M}(${venv_name})${_RST} "
+    fi
 
     # kubectl current context — shows live cluster or "disconnected"
     if command -v kubectl &>/dev/null; then
@@ -75,9 +85,9 @@ _set_prompt() {
     fi
 
     if [ "$(id -u)" -eq 0 ]; then
-        PS1="${_R}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}#${_RST} "
+        PS1="${venv_info}${_R}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}#${_RST} "
     else
-        PS1="${_G}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}\$${_RST} "
+        PS1="${venv_info}${_G}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}\$${_RST} "
     fi
 }
 PROMPT_COMMAND='_set_prompt'
@@ -90,6 +100,21 @@ export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 if [ -r "$(brew --prefix 2>/dev/null)/etc/profile.d/bash_completion.sh" ]; then
     . "$(brew --prefix)/etc/profile.d/bash_completion.sh"
 fi
+
+# CLI tool completions — add tools here that support "tool completion bash"
+_bash_load_completions() {
+    local tool output
+    for tool in kubectl helm flux kind k3d docker ollama; do
+        if command -v "$tool" &>/dev/null; then
+            output=$("$tool" completion bash 2>/dev/null)
+            [ -n "$output" ] && eval "$output"
+        fi
+    done
+    # extend completion to the k alias for kubectl
+    command -v kubectl &>/dev/null && complete -o default -F __start_kubectl k
+}
+_bash_load_completions
+unset -f _bash_load_completions
 
 # Aliases
 if [ -f ~/.bash_aliases ]; then

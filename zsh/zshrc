@@ -20,6 +20,9 @@ fi
 export EDITOR=vim
 export VISUAL=vim
 
+# Prevent venv from overwriting our custom prompt
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
 # History
 HISTFILE=~/.zsh_history
 HISTSIZE=100000
@@ -85,10 +88,17 @@ setopt PROMPT_SUBST
 
 _zsh_prompt() {
     local exit_ok=$?
-    local sym sym_col local_time utc_time kctx kctx_col
+    local sym sym_col local_time utc_time kctx kctx_col venv_info
 
     local_time=$(date '+%Y-%m-%d %H:%M:%S')
     utc_time=$(date -u '+%Y-%m-%d %H:%M:%S')
+
+    # venv indicator — shown at very start of the prompt line
+    venv_info=""
+    if [ -n "$VIRTUAL_ENV" ]; then
+        local venv_name="${VIRTUAL_ENV_PROMPT:-$(basename "$VIRTUAL_ENV")}"
+        venv_info="${_M}(${venv_name})${_RST} "
+    fi
 
     # kubectl current context — shows live cluster or "disconnected"
     if command -v kubectl &>/dev/null; then
@@ -112,11 +122,11 @@ _zsh_prompt() {
 
     if [ "$(id -u)" -eq 0 ]; then
         sym='#'
-        PROMPT="${_R}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
+        PROMPT="${venv_info}${_R}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
 ${sym_col}${sym}${_RST} "
     else
         sym='$'
-        PROMPT="${_G}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
+        PROMPT="${venv_info}${_G}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
 ${sym_col}${sym}${_RST} "
     fi
 }
@@ -138,9 +148,12 @@ alias t='tmux'
 
 # CLI tool completions — add tools here that support "tool completion zsh"
 _zsh_load_completions() {
-    local tool
+    local tool output
     for tool in kubectl helm flux kind k3d docker ollama; do
-        command -v "$tool" &>/dev/null && source <("$tool" completion zsh 2>/dev/null)
+        if command -v "$tool" &>/dev/null; then
+            output=$("$tool" completion zsh 2>/dev/null)
+            [ -n "$output" ] && eval "$output"
+        fi
     done
     # extend completion to the k alias for kubectl
     command -v kubectl &>/dev/null && compdef k=kubectl
