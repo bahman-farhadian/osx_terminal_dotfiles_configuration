@@ -224,6 +224,7 @@ $
 | Background | Base `#1e1e2e` |
 | Session name | Mauve `#cba6f7`, no background |
 | Active window | Blue `#89b4fa` on Surface0 `#313244` |
+| Active window (pane zoomed) | `Z` indicator in Peach `#fab387` appended to window title |
 | Inactive window | Overlay0 `#6c7086` |
 | Active pane border | Mauve `#cba6f7` |
 | Hostname | Blue `#89b4fa` |
@@ -347,22 +348,24 @@ Smoke-test checklist after deploying the dotfiles to a new machine.
 | 17 | `Ctrl+b "` → `Option+S` | Focus moves to lower pane |
 | 18 | `fn+↑` | Enters copy-mode and scrolls up |
 | 19 | `q` or `Escape` | Exits copy-mode |
-| 20 | `Ctrl+b @` | All panes in window sync input; repeat to turn off |
-| 21 | `Option+1` | Switches to even-horizontal layout |
+| 20 | `Ctrl+b z` | Pane zooms to full window; active window tab shows `Z` in peach |
+| 21 | `Ctrl+b z` again | Pane un-zooms; `Z` disappears from the tab |
+| 22 | `Ctrl+b @` | All panes in window sync input; repeat to turn off |
+| 23 | `Option+1` | Switches to even-horizontal layout |
 
 ### Nested tmux over SSH
 
 | # | Test | Expected |
 |---|---|---|
-| 22 | SSH to a server, start tmux there, press `fn+↑` | Local tmux intercepts — remote copy-mode does **not** activate |
-| 23 | Press `F12` | Local status bar dims to grey, shows `[passthrough]` |
-| 24 | Press `fn+↑` again | Remote tmux enters copy-mode |
-| 25 | Press `Ctrl+b c` | New window opens in the **remote** tmux session |
-| 26 | Press `F12` again | Local status bar returns to normal colours; local tmux resumes control |
+| 24 | SSH to a server, start tmux there, press `fn+↑` | Local tmux intercepts — remote copy-mode does **not** activate |
+| 25 | Press `F12` | Local status bar dims to grey, shows `[passthrough]` |
+| 26 | Press `fn+↑` again | Remote tmux enters copy-mode |
+| 27 | Press `Ctrl+b c` | New window opens in the **remote** tmux session |
+| 28 | Press `F12` again | Local status bar returns to normal colours; local tmux resumes control |
 
 ### History
 
 | # | Test | Expected |
 |---|---|---|
-| 27 | Run `echo test` twice | Only one `echo test` entry in `history` output |
-| 28 | Run ` secret` (leading space) | Command is not recorded in history |
+| 29 | Run `echo test` twice | Only one `echo test` entry in `history` output |
+| 30 | Run ` secret` (leading space) | Command is not recorded in history |
