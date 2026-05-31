@@ -19,6 +19,8 @@ dotfiles/
 │   └── tmux.conf      → ~/.tmux.conf
 ├── ghostty/
 │   └── config         → ~/.config/ghostty/config
+├── ssh/
+│   └── config         → ~/.ssh/config
 ├── hushlogin          → ~/.hushlogin
 └── README.md
 ```
@@ -133,6 +135,9 @@ cp bash/bash_profile ~/.bash_profile && cp bash/bashrc ~/.bashrc && cp bash/bash
 # tmux
 cp tmux/tmux.conf ~/.tmux.conf && tmux source-file ~/.tmux.conf
 
+# ssh
+mkdir -p ~/.ssh && cp ssh/config ~/.ssh/config && chmod 600 ~/.ssh/config
+
 # Suppress "Last login" message
 cp hushlogin ~/.hushlogin
 ```
@@ -155,6 +160,7 @@ Deploy:
 sudo cp zsh/zshrc /var/root/.zshrc && sudo cp zsh/zsh_aliases /var/root/.zsh_aliases
 sudo cp bash/bash_profile /var/root/.bash_profile && sudo cp bash/bashrc /var/root/.bashrc && sudo cp bash/bash_aliases /var/root/.bash_aliases
 sudo cp tmux/tmux.conf /var/root/.tmux.conf
+sudo mkdir -p /var/root/.ssh && sudo cp ssh/config /var/root/.ssh/config && sudo chmod 600 /var/root/.ssh/config
 ```
 
 Verify: `sudo -i` → prompt shows `[zsh] root@...` in red.
