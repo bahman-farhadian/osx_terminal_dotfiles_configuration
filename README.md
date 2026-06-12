@@ -144,6 +144,13 @@ cp hushlogin ~/.hushlogin
 
 > Switch to bash: `chsh -s /bin/bash` — revert: `chsh -s /bin/zsh`
 
+> **SSH config** — `ssh/config` points every host at `~/.ssh/id_ed25519` on
+> port 22 and skips host-key checking (`StrictHostKeyChecking no`,
+> `UserKnownHostsFile /dev/null`). If that key has a passphrase,
+> `AddKeysToAgent 5m` caches it in `ssh-agent` for 5 minutes after first use —
+> the same 5-minute window as macOS `sudo`'s default credential cache — so you
+> aren't re-prompted on every connection within that window.
+
 ---
 
 ## Root user
