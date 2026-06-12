@@ -1,5 +1,16 @@
 # Ghostty config — tmux handles panes and scrollback
 
+# Font — JetBrainsMono Nerd Font Mono provides the powerline glyphs used by
+# the shell prompt segments (separators + git branch icon) with fixed-width
+# glyph cells, which the proportional "Nerd Font" variant lacks. See README
+# "Fonts". Font changes require a full Ghostty restart (Cmd+Q), not just a
+# config reload (Cmd+Shift+,).
+font-family = JetBrainsMono Nerd Font Mono
+# font-family = SF Mono — built-in macOS font, swap in to test if the Nerd
+# Font isn't visibly applying (powerline glyphs will show as boxes/"?" with
+# this one, since it isn't a Nerd Font)
+font-size = 12
+
 # Catppuccin Mocha
 background = 1e1e2e
 foreground = cdd6f4
@@ -20,8 +31,8 @@ palette = 13=#f5c2e7
 palette = 14=#94e2d5
 palette = 15=#a6adc8
 
-background-opacity = 0.5
-background-blur = true
+background-opacity = 1
+background-blur = false
 macos-icon = paper
 
 # Padding — clears macOS rounded corners

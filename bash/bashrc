@@ -36,59 +36,124 @@ export VISUAL=vim
 # Prevent venv from overwriting our custom prompt
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 
-# Catppuccin Mocha colours (true-colour)
-_R='\[\e[38;2;243;139;168m\]'   # Red    (root alarm)
-_G='\[\e[38;2;166;227;161m\]'   # Green  (user)
-_Y='\[\e[38;2;249;226;175m\]'   # Yellow (host)
-_B='\[\e[38;2;137;180;250m\]'   # Blue   (path)
-_M='\[\e[38;2;203;166;247m\]'   # Mauve  (decorators)
-_T='\[\e[38;2;205;214;244m\]'   # Text   (local time)
-_C='\[\e[38;2;148;226;213m\]'   # Teal   (UTC time)
-_K='\[\e[38;2;137;220;235m\]'   # Sky    (kubectl context)
+# Catppuccin Mocha — one palette for the whole terminal UI. Every badge
+# background is its Mocha accent blended 30% into the Base #1e1e2e terminal
+# background, so all badges share the same undertone and visual weight; all
+# badge text is the bright neutral Text colour for crystal-clear contrast
+# against every tinted background.
+# (tmux uses these exact values too — see tmux/tmux.conf.)
+_OVERLAY='108;112;134'     # Overlay0 (corners / connectors)              #6c7086
+_TEXT='205;214;244'        # Text     (not-git badge text)                #cdd6f4
+
+_GREEN='166;227;161'       # Green    ([shell] text / user segment / exit ok) #a6e3a1
+_GREEN_BG='71;89;80'       # Green bg    (user segment)                   #475950
+_RED='243;139;168'         # Red      (root / disconnected)               #f38ba8
+_RED_BG='94;63;83'         # Red bg      (root / disconnected segment)    #5e3f53
+_BLUE='137;180;250'        # Blue     (path segment)                      #89b4fa
+_BLUE_BG='62;75;107'       # Blue bg     (path segment)                   #3e4b6b
+_MAUVE='203;166;247'       # Mauve    (venv segment)                      #cba6f7
+_MAUVE_BG='82;71;106'      # Mauve bg    (venv segment)                   #52476a
+_PEACH='250;179;135'       # Peach    (git branch segment)                #fab387
+_PEACH_BG='96;75;73'       # Peach bg    (git branch segment)             #604b49
+_LAVENDER='180;190;254'    # Lavender (local time segment)                #b4befe
+_LAVENDER_BG='75;78;108'   # Lavender bg (local time segment)             #4b4e6c
+_TEAL='148;226;213'        # Teal     (UTC time segment)                  #94e2d5
+_TEAL_BG='65;89;96'        # Teal bg     (UTC time segment)               #415960
+_SKY='137;220;235'         # Sky      (kubectl context segment)           #89dceb
+_SKY_BG='62;87;103'        # Sky bg      (kubectl context segment)        #3e5767
+_OVERLAY_BG='53;55;72'     # Overlay bg  (not-git segment)                #353748
 _RST='\[\e[0m\]'
 
-# Prompt — two lines:
-#   [bash] user@host:/path  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00  k8s:cluster
-#   $ (green ok / red error)   ← command starts here
+# Powerline glyphs — require a Nerd Font (see README "Fonts" section)
+_SEP=''                # solid right-pointing segment separator
+_BRANCH=''             # git branch icon
+
+# Prompt — two connected lines. [shell] is plain text; everything from
+# user@host to UTC time is a continuous bar of dark-tinted badge segments
+# with bright accent-coloured text:
+#   ╭─ [bash]  user@host  k8s:cluster  /path  branch  Local ...  UTC ...
+#   ╰─ $ (green ok / red error)   ← command starts here
 _set_prompt() {
     local exit_code=$?
-    local sym_col local_time utc_time kctx kctx_col venv_info
+    local sym sym_col local_time utc_time kctx kctx_bg
+    local git_branch git_bg git_text user_bg user_fg venv_name
+    local line1 prev_bg i
+    local -a seg_bg seg_fg seg_text
 
     local_time=$(date '+%Y-%m-%d %H:%M:%S')
     utc_time=$(date -u '+%Y-%m-%d %H:%M:%S')
 
-    # venv indicator — shown at very start of the prompt line
-    venv_info=""
-    if [ -n "$VIRTUAL_ENV" ]; then
-        local venv_name="${VIRTUAL_ENV_PROMPT:-$(basename "$VIRTUAL_ENV")}"
-        venv_info="${_M}(${venv_name})${_RST} "
+    # git branch segment — current branch/commit, or "not git repo" outside a repo
+    if git -C "$PWD" rev-parse --is-inside-work-tree &>/dev/null; then
+        git_branch=$(git -C "$PWD" symbolic-ref --quiet --short HEAD 2>/dev/null || git -C "$PWD" rev-parse --short HEAD 2>/dev/null)
+        git_bg="$_PEACH_BG"
+        git_text="${_BRANCH} ${git_branch}"
+    else
+        git_bg="$_OVERLAY_BG"
+        git_text="not git repo"
+    fi
+
+    # user/host segment colour — root = red alarm
+    if [ "$(id -u)" -eq 0 ]; then
+        sym='#'
+        user_bg="$_RED_BG"
+        user_fg="$_RED"
+    else
+        sym='$'
+        user_bg="$_GREEN_BG"
+        user_fg="$_GREEN"
     fi
 
     # kubectl current context — shows live cluster or "disconnected"
     if command -v kubectl &>/dev/null; then
         kctx=$(kubectl config current-context 2>/dev/null)
         if [ -n "$kctx" ]; then
-            kctx_col="${_K}"
+            kctx_bg="$_SKY_BG"
         else
             kctx="disconnected"
-            kctx_col="${_R}"
+            kctx_bg="$_RED_BG"
         fi
     else
         kctx="disconnected"
-        kctx_col="${_R}"
+        kctx_bg="$_RED_BG"
     fi
 
     if [ $exit_code -eq 0 ]; then
-        sym_col='\[\e[38;2;166;227;161m\]'
+        sym_col="$_GREEN"
     else
-        sym_col='\[\e[38;2;243;139;168m\]'
+        sym_col="$_RED"
     fi
 
-    if [ "$(id -u)" -eq 0 ]; then
-        PS1="${venv_info}${_R}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}#${_RST} "
-    else
-        PS1="${venv_info}${_G}[bash] \u${_M}@${_Y}\h${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}\n${sym_col}\$${_RST} "
+    # badge segments — venv (optional), user@host, k8s, path, git, Local, UTC
+    seg_bg=() seg_fg=() seg_text=()
+
+    if [ -n "$VIRTUAL_ENV" ]; then
+        venv_name="${VIRTUAL_ENV_PROMPT:-$(basename "$VIRTUAL_ENV")}"
+        seg_bg+=("$_MAUVE_BG"); seg_fg+=("$_TEXT"); seg_text+=(" ${venv_name} ")
     fi
+    seg_bg+=("$user_bg");      seg_fg+=("$_TEXT");   seg_text+=(" \u@\h ")
+    seg_bg+=("$kctx_bg");      seg_fg+=("$_TEXT");   seg_text+=(" k8s:${kctx} ")
+    seg_bg+=("$_BLUE_BG");     seg_fg+=("$_TEXT");     seg_text+=(" \w ")
+    seg_bg+=("$git_bg");       seg_fg+=("$_TEXT");    seg_text+=(" ${git_text} ")
+    seg_bg+=("$_LAVENDER_BG"); seg_fg+=("$_TEXT"); seg_text+=(" Local ${local_time} ")
+    seg_bg+=("$_TEAL_BG");     seg_fg+=("$_TEXT");     seg_text+=(" UTC ${utc_time} ")
+
+    # ╭─ [shell] tag — plain text, not part of the highlighted bar
+    line1="\[\e[38;2;${_OVERLAY}m\]╭─${_RST} \[\e[38;2;${user_fg}m\][bash]${_RST} "
+
+    prev_bg=""
+    for i in "${!seg_bg[@]}"; do
+        if [ -n "$prev_bg" ]; then
+            line1+="\[\e[48;2;${seg_bg[$i]}m\]\[\e[38;2;${prev_bg}m\]${_SEP}"
+        else
+            line1+="\[\e[48;2;${seg_bg[$i]}m\]"
+        fi
+        line1+="\[\e[38;2;${seg_fg[$i]}m\]${seg_text[$i]}"
+        prev_bg="${seg_bg[$i]}"
+    done
+    line1+="\[\e[49m\]\[\e[38;2;${prev_bg}m\]${_SEP}${_RST}"
+
+    PS1="${line1}\n\[\e[38;2;${_OVERLAY}m\]╰─${_RST} \[\e[38;2;${sym_col}m\]${sym}${_RST} "
 }
 PROMPT_COMMAND='_set_prompt'
 

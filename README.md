@@ -167,38 +167,84 @@ Verify: `sudo -i` → prompt shows `[zsh] root@...` in red.
 
 ---
 
+## Fonts
+
+The prompt uses Powerline glyphs (segment separators  and the git branch icon
+) — these require a [Nerd Font](https://www.nerdfonts.com/).
+
+**JetBrainsMono Nerd Font** (open source, SIL OFL):
+
+```bash
+brew install --cask font-jetbrains-mono-nerd-font
+```
+
+> **Manual install** — download `JetBrainsMono.zip` from the
+> [Nerd Fonts releases page](https://github.com/ryanoasis/nerd-fonts/releases),
+> unzip, then open each `.ttf` and click **Install Font** (or drop them into
+> `~/Library/Fonts/`).
+
+Ghostty is already configured to use the fixed-width variant
+(`font-family = JetBrainsMono Nerd Font Mono` in `ghostty/config`) — the plain
+"Nerd Font" family is proportional and throws off glyph alignment in a
+terminal.
+
+> **Font changes need a full restart** — after installing the font (or editing
+> `font-family`), fully quit Ghostty (`Cmd+Q`), not just reload the config
+> (`Cmd+Shift+,`). A config reload does not pick up font changes.
+
+> **Why commenting out `font-family` changes nothing** — Ghostty's built-in
+> default font *is* JetBrains Mono (bundled with the app), and Ghostty also
+> ships an embedded Nerd Font glyph fallback. So with the line commented out
+> you still get JetBrains Mono with working powerline glyphs. To verify the
+> setting is actually applying, swap in a visually different font (e.g. the
+> commented `SF Mono` line in `ghostty/config`) and fully restart — or run
+> `ghostty +show-config | grep font` to see the effective value.
+
+---
+
 ## Prompt
 
-Two-line format — command always starts on a clean line:
+Two connected lines, joined by a left-edge corner (`╭─`/`╰─`). `[shell]` is
+plain text; everything from `user@host` onward is a continuous bar of dark
+"badge" segments (Powerline style). Every badge background is its Catppuccin
+Mocha accent blended 30% into the Base `#1e1e2e` terminal background — so all
+badges share the same undertone and weight — and the badge text is the full
+bright accent. The tmux status bar uses the exact same values. Command always
+starts on a clean line:
 
 ```
-[zsh] user@host:/full/path  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00  k8s:my-cluster
-$
+╭─ [zsh] user@host  k8s:my-cluster  ~/full/path  main  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00
+╰─ $
 ```
 
-When a Python venv is active, the environment name is prepended on the first line:
+When a Python venv is active, it gets its own badge prepended to the bar:
 
 ```
-(.venv) [zsh] user@host:/full/path  Local ...  UTC ...  k8s:...
-$
+╭─ [zsh] (.venv)  user@host  k8s:my-cluster  ~/full/path  main  Local ...  UTC ...
+╰─ $
 ```
 
-`k8s:` reads `kubectl config current-context` on every prompt — Sky when connected, Red `disconnected` when not.
+Outside a git repository, the git badge reads `not git repo`. When `HEAD` is
+detached, it shows the short commit hash instead of a branch name.
 
-| Element | Colour |
-|---|---|
-| `(.venv)` venv indicator | Mauve `#cba6f7` |
-| `[shell]` + username | Green `#a6e3a1` |
-| `[shell]` + username (root) | Red `#f38ba8` |
-| `@` `:` decorators | Mauve `#cba6f7` |
-| Hostname | Yellow `#f9e2af` |
-| Path | Blue `#89b4fa` |
-| `Local` date/time | Text `#cdd6f4` |
-| `UTC` date/time | Teal `#94e2d5` |
-| `k8s:` active | Sky `#89dceb` |
-| `k8s:disconnected` | Red `#f38ba8` |
-| `$` / `#` ok | Green `#a6e3a1` |
-| `$` / `#` failed | Red `#f38ba8` |
+`k8s:` reads `kubectl config current-context` on every prompt — Sky text when connected, Red text `k8s:disconnected` when not.
+
+| Segment | Text | Background (accent @ 30% over Base) |
+|---|---|---|
+| `╭─` / `╰─` corners | Overlay0 `#6c7086` | — |
+| `[shell]` | Green `#a6e3a1` (Red `#f38ba8` for root) | — (plain text) |
+| `(.venv)` | Mauve `#cba6f7` | `#52476a` |
+| `user@host` | Green `#a6e3a1` | `#475950` |
+| `user@host` (root) | Red `#f38ba8` | `#5e3f53` |
+| `k8s:` (connected) | Sky `#89dceb` | `#3e5767` |
+| `k8s:disconnected` | Red `#f38ba8` | `#5e3f53` |
+| Path | Blue `#89b4fa` | `#3e4b6b` |
+| `branch` | Peach `#fab387` | `#604b49` |
+| `not git repo` | Text `#cdd6f4` | `#353748` |
+| `Local` time | Lavender `#b4befe` | `#4b4e6c` |
+| `UTC` time | Teal `#94e2d5` | `#415960` |
+| `$` / `#` ok | Green `#a6e3a1` | — |
+| `$` / `#` failed | Red `#f38ba8` | — |
 
 ---
 
@@ -214,7 +260,7 @@ $
 | `fn+↑` / `fn+↓` | Enter copy-mode and scroll |
 | `q` / `Escape` | Exit copy-mode |
 | `Ctrl+b $` | Rename session |
-| `Ctrl+b @` | Toggle synchronize-panes |
+| `Ctrl+b @` | Toggle synchronize-panes (pane borders turn Red while active) |
 | `Option+1–5` | Switch to named layout |
 | `Option+6` / `Option+7` | Next / previous layout |
 | `F12` | Toggle passthrough mode for nested tmux (SSH → remote tmux) |
@@ -227,12 +273,13 @@ $
 
 | Element | Colour |
 |---|---|
-| Background | Base `#1e1e2e` |
-| Session name | Mauve `#cba6f7`, no background |
-| Active window | Blue `#89b4fa` on Surface0 `#313244` |
-| Active window (pane zoomed) | `Z` indicator in Peach `#fab387` appended to window title |
-| Inactive window | Overlay0 `#6c7086` |
-| Active pane border | Mauve `#cba6f7` |
+| Background | Mantle `#181825` (one step darker than the Base `#1e1e2e` terminal bg, so the bar recedes) |
+| Session name | Mauve `#cba6f7` text on `#4e4364` badge (Mauve blended 30% into the bar's Mantle `#181825` background) |
+| Active window | Green `#a6e3a1` text on `#43554a` badge (Green blended 30% into Mantle `#181825`) |
+| Active window (pane zoomed) | `Z` indicator in Red `#f38ba8` appended to window title |
+| Inactive window | Overlay1 `#7f849c` on Mantle `#181825` |
+| Active pane border | Mauve `#cba6f7` (Red `#f38ba8` while synchronize-panes is on) |
+| Inactive pane border | Surface0 `#313244` (Red `#f38ba8` while synchronize-panes is on) |
 | Hostname | Blue `#89b4fa` |
 
 ---
@@ -320,12 +367,16 @@ Smoke-test checklist after deploying the dotfiles to a new machine.
 
 | # | Test | Expected |
 |---|---|---|
-| 1 | Open a new shell | Two-line prompt: `[zsh] user@host:/path  Local ...  UTC ...  k8s:...` then `$` on line 2 |
+| 1 | Open a new shell | Two lines joined by a left corner: `╭─ [zsh]` plain text, then a continuous bar of dark hue-tinted badges with `user@host` (green) → `k8s:...` (sky/red) → path (blue) → git (peach/grey) → `Local ...` (lavender) → `UTC ...` (teal) text; `╰─ $` on line 2 |
+| 1a | Powerline glyphs (separators, git icon, corners) render as solid shapes, not boxes/`?` | Nerd Font is installed and active in Ghostty |
 | 2 | Run `false` | `$` turns **red** on next prompt |
 | 3 | Run `true` | `$` returns **green** |
-| 4 | `sudo -i` | Prompt turns **red**, shows `[zsh] root@...`, `#` symbol |
-| 5 | `piv && va` (create + activate venv) | `(.venv)` appears in **mauve** at the very start of line 1 |
-| 6 | `vd` (deactivate) | `(.venv)` disappears immediately |
+| 4 | `sudo -i` | `[zsh]` text and `user@host` text turn **red**, shows `[zsh] root@...`, `#` symbol |
+| 5 | `piv && va` (create + activate venv) | New **mauve** badge text appears before the user@host badge |
+| 6 | `vd` (deactivate) | venv badge disappears immediately |
+| 6a | `cd` into a git repo | Git badge text shows ` <branch>` in **Peach** |
+| 6b | `cd` into a non-git directory | Git badge text shows `not git repo` in **Overlay2/grey** |
+| 6c | Checkout a detached HEAD (e.g. `git checkout HEAD~1`) | Git badge shows `<short-hash>` instead of branch name |
 
 ### SSH public key
 

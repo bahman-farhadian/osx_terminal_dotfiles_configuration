@@ -70,65 +70,126 @@ fi
 export CLICOLOR=1
 export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 
-# Catppuccin Mocha colours
-_R='%F{#f38ba8}'   # Red    (root alarm)
-_G='%F{#a6e3a1}'   # Green  (user)
-_Y='%F{#f9e2af}'   # Yellow (host)
-_B='%F{#89b4fa}'   # Blue   (path)
-_M='%F{#cba6f7}'   # Mauve  (decorators)
-_T='%F{#cdd6f4}'   # Text   (local time)
-_C='%F{#94e2d5}'   # Teal   (UTC time)
-_K='%F{#89dceb}'   # Sky    (kubectl context)
-_RST='%f'
+# Catppuccin Mocha — one palette for the whole terminal UI. Every badge
+# background is its Mocha accent blended 30% into the Base #1e1e2e terminal
+# background, so all badges share the same undertone and visual weight; all
+# badge text is the bright neutral Text colour for crystal-clear contrast
+# against every tinted background.
+# (tmux uses these exact values too — see tmux/tmux.conf.)
+_OVERLAY='#6c7086'   # Overlay0 (corners / connectors)
+_TEXT='#cdd6f4'      # Text     (not-git badge text)
 
-# Prompt — two lines:
-#   [zsh] user@host:/path  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00  k8s:cluster
-#   $ (green ok / red error)   ← command starts here
+_GREEN='#a6e3a1'     # Green    ([shell] text / user segment / exit ok)
+_GREEN_BG='#475950'  # Green bg    (user segment)
+_RED='#f38ba8'       # Red      (root / disconnected)
+_RED_BG='#5e3f53'    # Red bg      (root / disconnected segment)
+_BLUE='#89b4fa'      # Blue     (path segment)
+_BLUE_BG='#3e4b6b'   # Blue bg     (path segment)
+_MAUVE='#cba6f7'     # Mauve    (venv segment)
+_MAUVE_BG='#52476a'  # Mauve bg    (venv segment)
+_PEACH='#fab387'     # Peach    (git branch segment)
+_PEACH_BG='#604b49'  # Peach bg    (git branch segment)
+_LAVENDER='#b4befe'  # Lavender (local time segment)
+_LAVENDER_BG='#4b4e6c' # Lavender bg (local time segment)
+_TEAL='#94e2d5'      # Teal     (UTC time segment)
+_TEAL_BG='#415960'   # Teal bg     (UTC time segment)
+_SKY='#89dceb'       # Sky      (kubectl context segment)
+_SKY_BG='#3e5767'    # Sky bg      (kubectl context segment)
+_OVERLAY_BG='#353748' # Overlay bg  (not-git segment)
+
+# Powerline glyphs — require a Nerd Font (see README "Fonts" section)
+_SEP=''             # solid right-pointing segment separator
+_BRANCH=''          # git branch icon
+
+# Prompt — two connected lines. [shell] is plain text; everything from
+# user@host to UTC time is a continuous bar of dark-tinted badge segments
+# with bright accent-coloured text:
+#   ╭─ [zsh]  user@host  k8s:cluster  /path  branch  Local ...  UTC ...
+#   ╰─ $ (green ok / red error)   ← command starts here
 setopt PROMPT_SUBST
 
 _zsh_prompt() {
     local exit_ok=$?
-    local sym sym_col local_time utc_time kctx kctx_col venv_info
+    local sym sym_col local_time utc_time kctx kctx_bg
+    local git_branch git_bg git_text user_bg user_fg venv_name
+    local line1 prev_bg i
+    local -a seg_bg seg_fg seg_text
 
     local_time=$(date '+%Y-%m-%d %H:%M:%S')
     utc_time=$(date -u '+%Y-%m-%d %H:%M:%S')
 
-    # venv indicator — shown at very start of the prompt line
-    venv_info=""
-    if [ -n "$VIRTUAL_ENV" ]; then
-        local venv_name="${VIRTUAL_ENV_PROMPT:-$(basename "$VIRTUAL_ENV")}"
-        venv_info="${_M}(${venv_name})${_RST} "
+    # git branch segment — current branch/commit, or "not git repo" outside a repo
+    if git -C "$PWD" rev-parse --is-inside-work-tree &>/dev/null; then
+        git_branch=$(git -C "$PWD" symbolic-ref --quiet --short HEAD 2>/dev/null || git -C "$PWD" rev-parse --short HEAD 2>/dev/null)
+        git_bg="$_PEACH_BG"
+        git_text="${_BRANCH} ${git_branch}"
+    else
+        git_bg="$_OVERLAY_BG"
+        git_text="not git repo"
+    fi
+
+    # user/host segment colour — root = red alarm
+    if [ "$(id -u)" -eq 0 ]; then
+        sym='#'
+        user_bg="$_RED_BG"
+        user_fg="$_RED"
+    else
+        sym='$'
+        user_bg="$_GREEN_BG"
+        user_fg="$_GREEN"
     fi
 
     # kubectl current context — shows live cluster or "disconnected"
     if command -v kubectl &>/dev/null; then
         kctx=$(kubectl config current-context 2>/dev/null)
         if [ -n "$kctx" ]; then
-            kctx_col="${_K}"
+            kctx_bg="$_SKY_BG"
         else
             kctx="disconnected"
-            kctx_col="${_R}"
+            kctx_bg="$_RED_BG"
         fi
     else
         kctx="disconnected"
-        kctx_col="${_R}"
+        kctx_bg="$_RED_BG"
     fi
 
     if [ $exit_ok -eq 0 ]; then
-        sym_col='%F{#a6e3a1}'
+        sym_col="$_GREEN"
     else
-        sym_col='%F{#f38ba8}'
+        sym_col="$_RED"
     fi
 
-    if [ "$(id -u)" -eq 0 ]; then
-        sym='#'
-        PROMPT="${venv_info}${_R}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
-${sym_col}${sym}${_RST} "
-    else
-        sym='$'
-        PROMPT="${venv_info}${_G}[zsh] %n${_M}@${_Y}%m${_M}:${_B}${PWD}${_RST}  ${_T}Local ${local_time}${_RST}  ${_C}UTC ${utc_time}${_RST}  ${kctx_col}k8s:${kctx}${_RST}
-${sym_col}${sym}${_RST} "
+    # badge segments — venv (optional), user@host, k8s, path, git, Local, UTC
+    seg_bg=() seg_fg=() seg_text=()
+
+    if [ -n "$VIRTUAL_ENV" ]; then
+        venv_name="${VIRTUAL_ENV_PROMPT:-$(basename "$VIRTUAL_ENV")}"
+        seg_bg+=("$_MAUVE_BG"); seg_fg+=("$_TEXT"); seg_text+=(" ${venv_name} ")
     fi
+    seg_bg+=("$user_bg");      seg_fg+=("$_TEXT");   seg_text+=(" %n@%m ")
+    seg_bg+=("$kctx_bg");      seg_fg+=("$_TEXT");   seg_text+=(" k8s:${kctx} ")
+    seg_bg+=("$_BLUE_BG");     seg_fg+=("$_TEXT");     seg_text+=(" %~ ")
+    seg_bg+=("$git_bg");       seg_fg+=("$_TEXT");    seg_text+=(" ${git_text} ")
+    seg_bg+=("$_LAVENDER_BG"); seg_fg+=("$_TEXT"); seg_text+=(" Local ${local_time} ")
+    seg_bg+=("$_TEAL_BG");     seg_fg+=("$_TEXT");     seg_text+=(" UTC ${utc_time} ")
+
+    # ╭─ [shell] tag — plain text, not part of the highlighted bar
+    line1="%F{$_OVERLAY}╭─%f %F{$user_fg}[zsh]%f "
+
+    prev_bg=""
+    for i in {1..${#seg_bg}}; do
+        if [ -n "$prev_bg" ]; then
+            line1+="%K{${seg_bg[$i]}}%F{$prev_bg}${_SEP}%f"
+        else
+            line1+="%K{${seg_bg[$i]}}"
+        fi
+        line1+="%F{${seg_fg[$i]}}${seg_text[$i]}"
+        prev_bg="${seg_bg[$i]}"
+    done
+    line1+="%k%F{$prev_bg}${_SEP}%f"
+
+    PROMPT="${line1}
+%F{$_OVERLAY}╰─%f %F{$sym_col}${sym}%f "
 }
 
 precmd_functions+=(_zsh_prompt)
