@@ -1,9 +1,8 @@
 -- ~/.config/nvim/init.lua
 
-vim.g.mapleader      = " "
-vim.g.maplocalleader = " "
+vim.g.mapleader      = ","
+vim.g.maplocalleader = ","
 
--- Disable netrw (replaced by nvim-tree)
 vim.g.loaded_netrw       = 1
 vim.g.loaded_netrwPlugin = 1
 
@@ -18,7 +17,8 @@ vim.opt.sidescrolloff  = 8
 vim.opt.colorcolumn    = "120"
 vim.opt.termguicolors  = true
 vim.opt.showmode       = false
-vim.opt.laststatus     = 3  -- single global statusline
+vim.opt.laststatus     = 3
+vim.opt.showtabline    = 2
 
 vim.opt.guicursor = "a:ver25"
 
@@ -50,7 +50,6 @@ vim.opt.wildmenu    = true
 vim.opt.wildmode    = "longest:full,full"
 vim.opt.completeopt = "menu,menuone,noselect"
 
--- Misc
 vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 vim.opt.mouse      = ""
@@ -84,27 +83,19 @@ require("lazy").setup({
           vim.cmd.colorscheme("catppuccin")
       end },
 
-    -- Persistent side-panel file explorer (no layout bugs)
-    { "nvim-tree/nvim-tree.lua", lazy = false,
-      config = function()
-          require("nvim-tree").setup({
-              view    = { width = 30 },
-              filters = { dotfiles = false },
-              git     = { enable = true },
-              renderer = { group_empty = true, highlight_git = true },
-          })
-          vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle explorer" })
-          -- When nvim-tree is the only window left, exit nvim cleanly
-          vim.api.nvim_create_autocmd("BufEnter", {
-              callback = function()
-                  if #vim.api.nvim_list_wins() == 1 and vim.bo.filetype == "NvimTree" then
-                      vim.defer_fn(function() vim.cmd("qall") end, 0)
-                  end
-              end,
-          })
-      end },
+    -- Buffer tabs at the top (shows open files like tmux windows)
+    { "echasnovski/mini.tabline", version = false, lazy = false,
+      config = function() require("mini.tabline").setup() end },
 
-    -- Bottom statusline
+    -- Floating file / grep / buffer picker  (,f / ,g / ,b)
+    { "echasnovski/mini.pick", version = false,
+      keys = {
+          { "<leader>f", function() require("mini.pick").builtin.files() end,      desc = "Find files" },
+          { "<leader>g", function() require("mini.pick").builtin.grep_live() end,  desc = "Grep" },
+          { "<leader>b", function() require("mini.pick").builtin.buffers() end,    desc = "Buffers" },
+      } },
+
+    -- Statusline
     { "nvim-lualine/lualine.nvim", event = "VeryLazy",
       opts = {
           options = {
@@ -122,9 +113,6 @@ require("lazy").setup({
               lualine_z = { "location" },
           },
       } },
-
-    -- Multi-cursor — <C-n> select word, <C-n> again adds next match, <C-Up/Down> add cursor
-    { "mg979/vim-visual-multi", branch = "master" },
 
     -- Git signs in gutter
     { "lewis6991/gitsigns.nvim", event = { "BufReadPost", "BufNewFile" }, opts = {} },
@@ -149,22 +137,14 @@ require("lazy").setup({
           sources = { default = { "lsp", "path", "buffer" } },
       } },
 
+    -- Multi-cursor: Ctrl+n selects word, repeat to add next match, Ctrl+↑/↓ adds cursor
+    { "mg979/vim-visual-multi", branch = "master" },
+
 }, {
     ui               = { border = "rounded" },
     install          = { colorscheme = { "catppuccin", "habamax" } },
     checker          = { enabled = false },
     change_detection = { notify = false },
-})
-
--- Auto-open explorer on startup: no args → cwd, dir arg → that dir
-vim.api.nvim_create_autocmd("VimEnter", {
-    once = true,
-    callback = function()
-        if vim.fn.argc() == 0 or
-           (vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1) then
-            require("nvim-tree.api").tree.open()
-        end
-    end,
 })
 
 -- Highlight yanked text briefly
@@ -180,27 +160,29 @@ vim.api.nvim_create_autocmd("LspAttach", {
         map("K",          vim.lsp.buf.hover)
         map("gd",         vim.lsp.buf.definition)
         map("gr",         vim.lsp.buf.references)
-        map("<leader>rn", vim.lsp.buf.rename)
-        map("<leader>ca", vim.lsp.buf.code_action)
+        map("<leader>r",  vim.lsp.buf.rename)
+        map("<leader>a",  vim.lsp.buf.code_action)
     end,
 })
 
 vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 
--- Key mappings
+-- ── Key mappings ─────────────────────────────────────────────────────────────
+
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- Save
-vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>write<CR>", { desc = "Save" })
-vim.keymap.set("n", "<leader>w",       "<cmd>write<CR>", { desc = "Save" })
+vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>write<CR>",  { desc = "Save" })
 
--- Close current file (buffer) — does NOT quit nvim
-vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>", { desc = "Close file" })
+-- Close current file / force quit all
+vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>",  { desc = "Close file" })
+vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",    { desc = "Quit all" })
 
--- Force quit nvim entirely
-vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>", { desc = "Quit all" })
+-- Switch files — Tab / Shift+Tab (mirrors tmux Shift+←/→)
+vim.keymap.set("n", "<Tab>",   "<cmd>bnext<CR>",     { desc = "Next file" })
+vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev file" })
 
--- Window navigation
+-- Window focus
 vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
@@ -211,7 +193,3 @@ vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
-
--- Switch open files
-vim.keymap.set("n", "<leader>bn", "<cmd>bnext<CR>",     { desc = "Next file" })
-vim.keymap.set("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Prev file" })

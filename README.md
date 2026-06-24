@@ -34,7 +34,7 @@ dotfiles/
 
 # Required tools
 brew install bash bash-completion@2 tmux neovim git git-lfs gh vim \
-             btop jq yq curl wget tree pyright
+             btop jq yq curl wget tree pyright ripgrep
 
 # Ghostty — download .dmg from ghostty.org
 # Nerd Font (for prompt glyphs)
@@ -81,63 +81,55 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 
 ## Neovim
 
-Minimal plugin config (`nvim/init.lua`). `<leader>` = Space.  
+Minimal plugin config (`nvim/init.lua`). Leader key: `,`  
 Plugins install automatically on first launch (requires internet + `git`).
 
-**Plugins:** `catppuccin` · `nvim-tree` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+**Plugins:** `catppuccin` · `mini.tabline` · `mini.pick` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
-`Space` is the leader key.
+No sidebar. Open files appear as tabs at the top. Use `,f` to open a file picker.
 
-**File explorer**
-
-| Keys | Action |
-|---|---|
-| `Space+e` | Open / close explorer panel |
-| `Enter` | Open file or expand folder |
-| `Ctrl+h` / `Ctrl+l` | Jump between explorer and editor |
-| `a` | New file (`filename`) or folder (`foldername/`) |
-| `r` | Rename |
-| `d` | Delete |
-
-**Working with files**
+**Files**
 
 | Keys | Action |
 |---|---|
-| `Ctrl+s` | Save current file (works in normal and insert mode) |
-| `Space+w` | Save current file |
-| `Space+q` | Close current file |
-| `Space+Q` | Force quit nvim entirely |
-| `Space+bn` / `Space+bp` | Next / previous open file |
+| `,f` | Floating file picker — type to fuzzy search, Enter to open |
+| `,g` | Floating live grep across all files |
+| `,b` | Floating list of open files |
+| `Tab` | Next open file |
+| `Shift+Tab` | Previous open file |
+| `Ctrl+s` | Save (works in normal and insert mode) |
+| `,q` | Close current file |
+| `,Q` | Force quit nvim |
 
-**Moving between splits**
+**Windows**
 
 | Keys | Action |
 |---|---|
-| `Ctrl+h/j/k/l` | Focus left / down / up / right window |
+| `Ctrl+h/j/k/l` | Move focus left / down / up / right |
 
 **Editing**
 
 | Keys | Action |
 |---|---|
 | `Esc` | Clear search highlight |
-| `Ctrl+n` | Select word under cursor — press again to add next match |
-| `Ctrl+↑` / `Ctrl+↓` | Add cursor on line above / below |
-| `Esc` (twice) | Exit multi-cursor mode |
-| `v` then `<` / `>` | Indent selection (stays in visual mode) |
-| `v` then `J` / `K` | Move selected lines down / up |
+| `Ctrl+n` | Select word under cursor — repeat to add each next match |
+| `Ctrl+Up` / `Ctrl+Down` | Add a cursor on the line above / below |
+| `Esc` twice | Exit multi-cursor |
+| `v` then `<` or `>` | Indent selection, stay in visual mode |
+| `v` then `J` or `K` | Move selected lines down / up |
 
-**Code (LSP — Python)**
+**Code — Python LSP**
 
 | Keys | Action |
 |---|---|
 | `K` | Show docs for symbol under cursor |
 | `gd` | Go to definition |
 | `gr` | Show all references |
-| `Space+rn` | Rename symbol |
-| `Space+ca` | Code actions (quick fixes) |
-| `Ctrl+Space` | Trigger autocomplete manually |
+| `,r` | Rename symbol |
+| `,a` | Code actions / quick fixes |
+| `Ctrl+Space` | Trigger autocomplete |
 | `Enter` | Accept suggestion |
-| `Ctrl+n` / `Ctrl+p` | Navigate suggestion list |
+| `Ctrl+n` / `Ctrl+p` | Move through suggestions |
 
 Filetype support: Python (pyright LSP + autocomplete), bash/sh, YAML, `.cfg`/`.conf`, `.env`, Dockerfile.
 
