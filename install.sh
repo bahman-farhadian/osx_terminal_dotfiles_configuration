@@ -44,6 +44,14 @@ else
     _skip "root configuration"
 fi
 
+# ── Prerequisites hint ────────────────────────────────────────────────────
+bc_path="${HOMEBREW_PREFIX:-/opt/homebrew}/etc/profile.d/bash_completion.sh"
+if ! [ -r "$bc_path" ]; then
+    _warn "bash-completion@2 not found — kubectl/docker tab-completion will not work"
+    printf '  Fix: brew install bash-completion@2\n'
+fi
+unset bc_path
+
 # ── bash ──────────────────────────────────────────────────────────────────
 _section "bash"
 cp_file "$REPO/bash/bash_profile" "$HOME/.bash_profile"

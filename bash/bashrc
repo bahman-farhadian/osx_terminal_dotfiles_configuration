@@ -210,6 +210,11 @@ _strip_comp_descriptions() {
 
 # CLI tool completions — add tools here that support "tool completion bash"
 _bash_load_completions() {
+    # kubectl/docker/helm completions are cobra-generated and require
+    # bash-completion@2 helper functions (_get_comp_words_by_ref, etc.).
+    # Skip silently if the package is not installed to avoid confusing errors.
+    type _get_comp_words_by_ref &>/dev/null || return 0
+
     local tool output comp_fn wrapper_fn
     for tool in kubectl helm flux kind k3d docker; do
         if command -v "$tool" &>/dev/null; then
