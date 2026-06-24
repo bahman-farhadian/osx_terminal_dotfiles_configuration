@@ -47,17 +47,19 @@ brew install --cask font-jetbrains-mono-nerd-font
 
 ```bash
 ./install.sh   # idempotent — safe to re-run
-exec bash      # reload shell
+exec bash      # reload current session
 ```
 
-The installer symlinks every file. SSH config is merged via `Include ~/.ssh/config.d/*` so any existing `~/.ssh/config` is never overwritten.
+The script copies every dotfile into place and sets bash as the default shell
+for both your user and root. It will ask whether to configure root — enter `y`
+and your sudo password, or press Enter to skip root.
 
-> **Make bash the default shell:** `chsh -s /bin/bash` — log out and back in.
+SSH settings are appended to `~/.ssh/config` only if not already present
+(`AddKeysToAgent 5m` is used as the idempotency marker).
 
-> **Remove zsh customisations** (reverts to macOS zsh defaults, does not remove zsh itself):
+> **Remove zsh customisations** (reverts to macOS zsh defaults, does not remove zsh):
 > ```bash
-> rm -f ~/.zshrc ~/.zsh_aliases
-> exec zsh
+> rm -f ~/.zshrc ~/.zsh_aliases && exec zsh
 > ```
 
 ---
