@@ -86,49 +86,58 @@ Plugins install automatically on first launch (requires internet + `git`).
 
 **Plugins:** `catppuccin` · `nvim-tree` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
-**Explorer**
+`Space` is the leader key.
 
-| Key | Action |
+**File explorer**
+
+| Keys | Action |
 |---|---|
-| `<leader>e` | Toggle nvim-tree side panel |
-| `<CR>` | Open file / expand folder |
-| `a` | New file or folder (end name with `/` for folder) |
-| `d` | Delete |
+| `Space+e` | Open / close explorer panel |
+| `Enter` | Open file or expand folder |
+| `Ctrl+h` / `Ctrl+l` | Jump between explorer and editor |
+| `a` | New file (`filename`) or folder (`foldername/`) |
 | `r` | Rename |
-| `<C-h>` / `<C-l>` | Move focus: explorer ↔ editor |
+| `d` | Delete |
 
-**Windows & buffers**
+**Working with files**
 
-| Key | Action |
+| Keys | Action |
 |---|---|
-| `<C-h/j/k/l>` | Focus window left / down / up / right |
-| `<leader>w` / `<leader>q` | Save / Quit window |
-| `<leader>Q` | Quit all |
-| `<leader>bn/bp` | Next / prev buffer |
-| `<leader>bd` | Close buffer |
+| `Space+w` | Save current file |
+| `Space+q` | Close current window |
+| `Space+Q` | Quit everything |
+| `Space+bd` | Close current file (keep window) |
+| `Space+bn` / `Space+bp` | Next / previous open file |
+
+**Moving between splits**
+
+| Keys | Action |
+|---|---|
+| `Ctrl+h/j/k/l` | Focus left / down / up / right window |
 
 **Editing**
 
-| Key | Action |
+| Keys | Action |
 |---|---|
-| `<Esc>` | Clear search highlight |
-| `v` + `<`/`>` | Indent selection, stay in visual |
-| `v` + `J`/`K` | Move selection down / up |
-| `<C-v>` + `I` | Visual block insert (built-in multi-line) |
-| `<C-n>` | Select word under cursor (multi-cursor) |
-| `<C-n>` again | Add next match as cursor |
-| `<C-Up>` / `<C-Down>` | Add cursor above / below |
+| `Esc` | Clear search highlight |
+| `Ctrl+n` | Select word under cursor — press again to add next match |
+| `Ctrl+↑` / `Ctrl+↓` | Add cursor on line above / below |
+| `Esc` (twice) | Exit multi-cursor mode |
+| `v` then `<` / `>` | Indent selection (stays in visual mode) |
+| `v` then `J` / `K` | Move selected lines down / up |
 
-**LSP**
+**Code (LSP — Python)**
 
-| Key | Action |
+| Keys | Action |
 |---|---|
-| `K` | Hover docs |
-| `gd` / `gr` | Definition / references |
-| `<leader>rn` | Rename symbol |
-| `<leader>ca` | Code action |
-| `<C-Space>` | Trigger autocomplete |
-| `<CR>` | Accept completion |
+| `K` | Show docs for symbol under cursor |
+| `gd` | Go to definition |
+| `gr` | Show all references |
+| `Space+rn` | Rename symbol |
+| `Space+ca` | Code actions (quick fixes) |
+| `Ctrl+Space` | Trigger autocomplete manually |
+| `Enter` | Accept suggestion |
+| `Ctrl+n` / `Ctrl+p` | Navigate suggestion list |
 
 Filetype support: Python (pyright LSP + autocomplete), bash/sh, YAML, `.cfg`/`.conf`, `.env`, Dockerfile.
 
