@@ -1,5 +1,8 @@
 # ~/.bash_profile — macOS login shell entry point
 
+# Suppress macOS "The default interactive shell is now zsh" warning
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
 if [ -f ~/.bashrc ]; then
     . ~/.bashrc
 fi

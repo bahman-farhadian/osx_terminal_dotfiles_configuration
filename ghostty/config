@@ -9,7 +9,7 @@ font-family = JetBrainsMono Nerd Font Mono
 # font-family = SF Mono — built-in macOS font, swap in to test if the Nerd
 # Font isn't visibly applying (powerline glyphs will show as boxes/"?" with
 # this one, since it isn't a Nerd Font)
-font-size = 12
+font-size = 10
 
 # Catppuccin Mocha
 background = 1e1e2e

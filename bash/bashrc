@@ -151,7 +151,9 @@ _set_prompt() {
 
     if [ -n "$VIRTUAL_ENV" ]; then
         venv_name="${VIRTUAL_ENV_PROMPT:-$(basename "$VIRTUAL_ENV")}"
-        seg_bg+=("$_MAUVE_BG"); seg_fg+=("$_TEXT"); seg_text+=(" ${venv_name} ")
+        seg_bg+=("$_MAUVE_BG");   seg_fg+=("$_TEXT"); seg_text+=(" venv:${venv_name} ")
+    else
+        seg_bg+=("$_OVERLAY_BG"); seg_fg+=("$_TEXT"); seg_text+=(" venv:inactive ")
     fi
     seg_bg+=("$user_bg");      seg_fg+=("$_TEXT");   seg_text+=(" \u@\h ")
     seg_bg+=("$kctx_bg");      seg_fg+=("$_TEXT");   seg_text+=(" k8s:${kctx} ")
@@ -190,10 +192,11 @@ bind 'set mark-symlinked-directories on'
 bind 'set colored-stats on'            # colour files by type in completion list
 bind 'set colored-completion-prefix on'
 
-# bash-completion@2
-if [ -r "$(brew --prefix 2>/dev/null)/etc/profile.d/bash_completion.sh" ]; then
-    . "$(brew --prefix)/etc/profile.d/bash_completion.sh"
-fi
+# bash-completion@2 — must load before tool completions; use $HOMEBREW_PREFIX
+# set by `brew shellenv` above (avoids spawning a slow brew --prefix subprocess)
+_bc="${HOMEBREW_PREFIX:-/opt/homebrew}/etc/profile.d/bash_completion.sh"
+[ -r "$_bc" ] && . "$_bc"
+unset _bc
 
 # Strip tab-separated descriptions from COMPREPLY so completions show as a
 # plain list (like ollama) rather than a columnar table with descriptions

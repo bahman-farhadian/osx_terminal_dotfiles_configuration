@@ -5,7 +5,7 @@ vim.g.maplocalleader = " "
 
 -- ── Display ───────────────────────────────────────────────────────────────
 vim.opt.number         = true
-vim.opt.relativenumber = true
+vim.opt.relativenumber = false
 vim.opt.cursorline     = true
 vim.opt.signcolumn     = "yes"
 vim.opt.wrap           = false
@@ -16,8 +16,8 @@ vim.opt.termguicolors  = true
 vim.opt.showmode       = false
 vim.opt.laststatus     = 2
 
--- ── Cursor — bar in every mode (insert, normal, visual, command) ──────────
-vim.opt.guicursor = "n-v-c-sm:ver25,i-ci-ve:ver25,r-cr-o:hor20"
+-- ── Cursor — bar cursor universally (all modes including no-file startup) ──
+vim.opt.guicursor = "a:ver25"
 
 -- ── Colour ────────────────────────────────────────────────────────────────
 vim.cmd("colorscheme habamax")
@@ -85,11 +85,13 @@ vim.g.netrw_winsize      = 25     -- explorer takes 25% of the total width
 -- <leader>e toggles the side-panel explorer (Lexplore is a built-in toggle)
 vim.keymap.set("n", "<leader>e", "<cmd>Lexplore<CR>", { desc = "Toggle explorer" })
 
--- Auto-open explorer when nvim is launched with a directory argument
+-- Auto-open explorer: no args → current dir (like `code .`); dir arg → that dir
 vim.api.nvim_create_autocmd("VimEnter", {
     callback = function()
-        if vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
-            vim.cmd("edit " .. vim.fn.argv(0))
+        if vim.fn.argc() == 0 then
+            vim.cmd("Lexplore")
+        elseif vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
+            vim.cmd("Lexplore " .. vim.fn.fnameescape(vim.fn.argv(0)))
         end
     end,
 })

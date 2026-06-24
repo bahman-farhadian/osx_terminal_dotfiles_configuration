@@ -72,27 +72,55 @@ if [ "$HAS_SUDO" = true ]; then
     sudo_cp "$REPO/nvim/init.lua" /var/root/.config/nvim/init.lua
 fi
 
-# ── SSH — append our 6-line block if not already present ──────────────────
+# ── SSH — upsert our 6-line block (replaces stale previous versions) ──────
 _section "SSH"
+
+# Remove any stale Host * stanza then append fresh block.
+# Returns 0 if already up-to-date, 1 if a change was made.
+_upsert_ssh() {
+    local config="$1"
+    grep -qF 'AddKeysToAgent 5m' "$config" 2>/dev/null && return 0
+    if grep -qF 'StrictHostKeyChecking no' "$config" 2>/dev/null; then
+        local py
+        py=$(mktemp)
+        cat > "$py" << 'PYEOF'
+import sys, re
+path = sys.argv[1]
+try: text = open(path).read()
+except FileNotFoundError: text = ''
+text = re.sub(r'\nHost \*\n(?:[ \t][^\n]*\n?)*', '', '\n' + text).strip()
+open(path, 'w').write(text + '\n' if text else '')
+PYEOF
+        python3 "$py" "$config"
+        rm -f "$py"
+    fi
+    printf '\n' >> "$config"
+    cat "$REPO/ssh/config" >> "$config"
+    return 1
+}
+
 mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
-touch "$HOME/.ssh/config"   && chmod 600 "$HOME/.ssh/config"
-if grep -qF 'AddKeysToAgent 5m' "$HOME/.ssh/config" 2>/dev/null; then
-    _ok "SSH settings already in ~/.ssh/config"
+touch "$HOME/.ssh/config" && chmod 600 "$HOME/.ssh/config"
+if _upsert_ssh "$HOME/.ssh/config"; then
+    _ok "SSH settings already present in ~/.ssh/config"
 else
-    printf '\n' >> "$HOME/.ssh/config"
-    cat "$REPO/ssh/config" >> "$HOME/.ssh/config"
-    _ok "SSH settings appended to ~/.ssh/config"
+    chmod 600 "$HOME/.ssh/config"
+    _ok "SSH settings applied to ~/.ssh/config"
 fi
+
 if [ "$HAS_SUDO" = true ]; then
     sudo mkdir -p /var/root/.ssh && sudo chmod 700 /var/root/.ssh
-    sudo touch /var/root/.ssh/config && sudo chmod 600 /var/root/.ssh/config
-    if sudo grep -qF 'AddKeysToAgent 5m' /var/root/.ssh/config 2>/dev/null; then
-        _ok "SSH settings already in /var/root/.ssh/config"
+    _rtmp=$(mktemp)
+    sudo cat /var/root/.ssh/config 2>/dev/null > "$_rtmp" || true
+    chmod 600 "$_rtmp"
+    if _upsert_ssh "$_rtmp"; then
+        _ok "SSH settings already present in /var/root/.ssh/config"
     else
-        printf '\n' | sudo tee -a /var/root/.ssh/config > /dev/null
-        sudo sh -c "cat '$REPO/ssh/config' >> /var/root/.ssh/config"
-        _ok "SSH settings appended to /var/root/.ssh/config"
+        sudo cp "$_rtmp" /var/root/.ssh/config
+        sudo chmod 600 /var/root/.ssh/config
+        _ok "SSH settings applied to /var/root/.ssh/config"
     fi
+    rm -f "$_rtmp"
 fi
 
 # ── Default shell → bash (system-wide via dscl) ───────────────────────────

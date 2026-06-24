@@ -54,12 +54,13 @@ The script copies every dotfile into place and sets bash as the default shell
 for both your user and root. It will ask whether to configure root — enter `y`
 and your sudo password, or press Enter to skip root.
 
-SSH settings are appended to `~/.ssh/config` only if not already present
-(`AddKeysToAgent 5m` is used as the idempotency marker).
+SSH settings are written to `~/.ssh/config` — stale blocks from previous installs are replaced automatically, fresh installs append.
 
-> **Remove zsh customisations** (reverts to macOS zsh defaults, does not remove zsh):
+> **Remove all zsh customisations** (reverts to macOS defaults — does not uninstall zsh):
 > ```bash
-> rm -f ~/.zshrc ~/.zsh_aliases && exec zsh
+> rm -f ~/.zshrc ~/.zsh_aliases ~/.zsh_history
+> rm -rf ~/.zsh_sessions
+> exec zsh
 > ```
 
 ---
@@ -99,16 +100,18 @@ Filetype support built-in: Python, bash/sh, YAML, `.cfg`/`.conf` (dosini), `.env
 ## Prompt
 
 ```
-╭─ [bash]  user@host  k8s:cluster   branch*⇡1  ~/path  Local ...  UTC ...
+╭─ [bash]  venv:name  user@host  k8s:cluster  branch*⇡1  ~/path  Local ...  UTC ...
 ╰─ $
 ```
 
 Git badge suffixes: `*` unstaged · `+` staged · `⇡N` ahead · `⇣N` behind · `{N}` stashes.  
-`k8s:` shows `kubectl config current-context` — red when disconnected.
+`k8s:` shows `kubectl config current-context` — red when disconnected.  
+`venv:` shows the active virtualenv name, or `venv:inactive` when none is active.
 
 | Segment | Background |
 |---|---|
-| `(.venv)` | Mauve `#52476a` |
+| `venv:name` | Mauve `#52476a` |
+| `venv:inactive` | Overlay `#353748` |
 | `user@host` | Green `#475950` (Red `#5e3f53` for root) |
 | `k8s:` connected | Sky `#3e5767` |
 | `k8s:disconnected` | Red `#5e3f53` |
@@ -160,4 +163,4 @@ Git badge suffixes: `*` unstaged · `+` staged · `⇡N` ahead · `⇣N` behind 
 
 ## SSH
 
-`ssh/config` is installed to `~/.ssh/config.d/dotfiles`. Settings: `IdentityFile ~/.ssh/id_ed25519`, `Port 22`, `StrictHostKeyChecking no`, `UserKnownHostsFile /dev/null`, `AddKeysToAgent 5m` (caches passphrase for 5 min, matching `sudo`'s default window).
+`ssh/config` is appended to `~/.ssh/config` (re-running replaces any stale block). Settings: `IdentityFile ~/.ssh/id_ed25519`, `Port 22`, `StrictHostKeyChecking no`, `UserKnownHostsFile /dev/null`, `AddKeysToAgent 5m` (caches passphrase for 5 min, matching `sudo`'s default window).
