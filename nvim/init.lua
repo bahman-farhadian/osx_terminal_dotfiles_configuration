@@ -95,15 +95,19 @@ require("lazy").setup({
           end, { desc = "Toggle explorer" })
       end },
 
-    -- Syntax highlighting
-    { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate",
+    -- Syntax highlighting (main branch — new API, no nvim-treesitter.configs)
+    { "nvim-treesitter/nvim-treesitter", branch = "main", build = ":TSUpdate",
       config = function()
-          ---@diagnostic disable-next-line: missing-fields
-          require("nvim-treesitter.configs").setup({
-              ensure_installed = { "python", "bash", "lua", "yaml", "json", "dockerfile", "toml" },
-              auto_install     = true,
-              highlight        = { enable = true },
-              indent           = { enable = true },
+          require("nvim-treesitter").install({
+              "python", "bash", "lua", "yaml", "json", "dockerfile", "toml",
+          })
+          local skip = { minifiles = true, lazy = true, mason = true, [""] = true }
+          vim.api.nvim_create_autocmd("FileType", {
+              callback = function(args)
+                  if skip[args.match] then return end
+                  local lang = vim.treesitter.language.get_lang(args.match)
+                  if lang then pcall(vim.treesitter.start, args.buf, lang) end
+              end,
           })
       end },
 
