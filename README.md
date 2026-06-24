@@ -34,7 +34,7 @@ dotfiles/
 
 # Required tools
 brew install bash bash-completion@2 tmux neovim git git-lfs gh vim \
-             btop jq yq curl wget tree
+             btop jq yq curl wget tree pyright
 
 # Ghostty — download .dmg from ghostty.org
 # Nerd Font (for prompt glyphs)

@@ -48,7 +48,7 @@ vim.opt.splitbelow = true
 -- Completion
 vim.opt.wildmenu    = true
 vim.opt.wildmode    = "longest:full,full"
-vim.opt.completeopt = "menuone,noselect"
+vim.opt.completeopt = "menu,menuone,noselect"
 
 -- Misc
 vim.opt.updatetime = 250
@@ -73,12 +73,14 @@ vim.filetype.add({
 
 vim.g.is_bash = 1
 
--- File explorer — netrw configured as a VSCode-style side panel
+-- File explorer
 vim.g.netrw_banner       = 0
 vim.g.netrw_liststyle    = 3
 vim.g.netrw_browse_split = 4
 vim.g.netrw_altv         = 1
 vim.g.netrw_winsize      = 25
+vim.g.netrw_fastbrowse   = 0  -- disable dir caching; prevents ghost buffers after open/close
+vim.g.netrw_keepdir      = 0  -- keep cwd in sync with explorer
 
 vim.keymap.set("n", "<leader>e", "<cmd>Lexplore<CR>", { desc = "Toggle explorer" })
 
@@ -92,6 +94,36 @@ vim.api.nvim_create_autocmd("VimEnter", {
         end
     end,
 })
+
+-- LSP — Python via pyright (install: brew install pyright)
+vim.api.nvim_create_autocmd("FileType", {
+    pattern  = { "python" },
+    callback = function()
+        vim.lsp.start({
+            name     = "pyright",
+            cmd      = { "pyright-langserver", "--stdio" },
+            root_dir = vim.fs.root(0, { "pyproject.toml", "setup.py", "requirements.txt", ".git" }),
+            settings = { python = { analysis = { typeCheckingMode = "basic" } } },
+        })
+    end,
+})
+
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+        local buf = args.buf
+        if vim.lsp.completion then  -- nvim 0.11+ built-in autocomplete
+            vim.lsp.completion.enable(true, args.data.client_id, buf, { autotrigger = true })
+        end
+        local map = function(k, f) vim.keymap.set("n", k, f, { buffer = buf, silent = true }) end
+        map("K",          vim.lsp.buf.hover)
+        map("gd",         vim.lsp.buf.definition)
+        map("gr",         vim.lsp.buf.references)
+        map("<leader>rn", vim.lsp.buf.rename)
+        map("<leader>ca", vim.lsp.buf.code_action)
+    end,
+})
+
+vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 
 -- Key mappings
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
