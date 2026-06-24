@@ -3,9 +3,8 @@
 vim.g.mapleader      = "\\"
 vim.g.maplocalleader = "\\"
 
--- Netrw as a clean full-screen file browser (\e to open)
-vim.g.netrw_banner    = 0
-vim.g.netrw_liststyle = 0
+vim.g.loaded_netrw       = 1
+vim.g.loaded_netrwPlugin = 1
 
 -- Display
 vim.opt.number         = true
@@ -21,6 +20,7 @@ vim.opt.showmode       = false
 vim.opt.laststatus     = 3
 vim.opt.showtabline    = 2
 
+-- Bar cursor in every mode
 vim.opt.guicursor = "a:ver25"
 
 -- Indentation
@@ -51,7 +51,7 @@ vim.opt.wildmode    = "longest:full,full"
 vim.opt.completeopt = "menu,menuone,noselect"
 
 vim.opt.updatetime = 250
-vim.opt.timeoutlen = 300
+vim.opt.timeoutlen = 1000   -- same relaxed pace as tmux prefix
 vim.opt.mouse      = ""
 
 -- Filetype detection
@@ -86,6 +86,24 @@ require("lazy").setup({
     -- Open files shown as tabs at the top
     { "echasnovski/mini.tabline", version = false, lazy = false,
       config = function() require("mini.tabline").setup() end },
+
+    -- Floating centered file explorer (\e) — same plugin as the screenshot
+    { "folke/snacks.nvim", priority = 1000, lazy = false,
+      opts = {
+          -- Only the picker is used (for the explorer tree)
+          picker       = { enabled = true },
+          explorer     = { enabled = false },
+          bigfile      = { enabled = false },
+          dashboard    = { enabled = false },
+          indent       = { enabled = false },
+          input        = { enabled = false },
+          notifier     = { enabled = false },
+          quickfile    = { enabled = false },
+          scope        = { enabled = false },
+          scroll       = { enabled = false },
+          statuscolumn = { enabled = false },
+          words        = { enabled = false },
+      } },
 
     -- Statusline
     { "nvim-lualine/lualine.nvim", event = "VeryLazy",
@@ -129,7 +147,7 @@ require("lazy").setup({
           sources = { default = { "lsp", "path", "buffer" } },
       } },
 
-    -- Multi-cursor: Ctrl+n on a word, repeat to add next match, Ctrl+Up/Down adds line cursor
+    -- Multi-cursor: Ctrl+n on a word, repeat to add next match, Ctrl+Up/Down adds line
     { "mg979/vim-visual-multi", branch = "master" },
 
 }, {
@@ -137,6 +155,11 @@ require("lazy").setup({
     install          = { colorscheme = { "catppuccin", "habamax" } },
     checker          = { enabled = false },
     change_detection = { notify = false },
+})
+
+-- Restore bar cursor when leaving nvim (Ghostty resets to block otherwise)
+vim.api.nvim_create_autocmd("VimLeave", {
+    callback = function() io.write("\27[5 q") end,
 })
 
 -- Highlight yanked text briefly
@@ -149,11 +172,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
         local buf = args.buf
         local map = function(k, f) vim.keymap.set("n", k, f, { buffer = buf, silent = true }) end
-        map("K",           vim.lsp.buf.hover)
-        map("gd",          vim.lsp.buf.definition)
-        map("gr",          vim.lsp.buf.references)
-        map("<leader>r",   vim.lsp.buf.rename)
-        map("<leader>a",   vim.lsp.buf.code_action)
+        map("K",         vim.lsp.buf.hover)
+        map("gd",        vim.lsp.buf.definition)
+        map("gr",        vim.lsp.buf.references)
+        map("<leader>r", vim.lsp.buf.rename)
+        map("<leader>a", vim.lsp.buf.code_action)
     end,
 })
 
@@ -161,20 +184,19 @@ vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 
 -- ── Key mappings ─────────────────────────────────────────────────────────────
 
--- Clear search highlight
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
--- Save — works from normal AND insert mode
+-- Save from any mode
 vim.keymap.set({ "n", "i", "v" }, "<C-s>", "<Esc><cmd>write<CR>", { desc = "Save" })
 
--- File browser (netrw opens in current window — Enter to open file, - to go up)
-vim.keymap.set("n", "<leader>e", "<cmd>Ex<CR>", { desc = "File browser" })
+-- File explorer — centered floating tree
+vim.keymap.set("n", "<leader>e", function() Snacks.picker.explorer() end, { desc = "Explorer" })
 
--- Close current file / force quit all
+-- Close file / quit
 vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>", { desc = "Close file" })
 vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",   { desc = "Quit all" })
 
--- Switch open files — Tab / Shift+Tab
+-- Switch open files
 vim.keymap.set("n", "<Tab>",   "<cmd>bnext<CR>",     { desc = "Next file" })
 vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev file" })
 

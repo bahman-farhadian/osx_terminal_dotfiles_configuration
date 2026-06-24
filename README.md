@@ -84,15 +84,15 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 Minimal plugin config (`nvim/init.lua`). Leader key: `\`  
 Plugins install automatically on first launch (requires internet + `git`).
 
-**Plugins:** `catppuccin` · `mini.tabline` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+**Plugins:** `catppuccin` · `mini.tabline` · `snacks.nvim` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
-No sidebar. Open files appear as tabs at the top.
+No sidebar. Open files appear as tabs at the top. Leader key is `\`.
 
 **Files**
 
 | Keys | Action |
 |---|---|
-| `\e` | Open file browser (navigate with j/k, Enter to open, `-` to go up a folder) |
+| `\e` | Centered floating file tree — navigate with j/k, Enter to open |
 | `Tab` | Next open file |
 | `Shift+Tab` | Previous open file |
 | `Ctrl+s` | Save — works in normal, insert, and visual mode |
