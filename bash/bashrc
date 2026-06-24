@@ -77,6 +77,7 @@ _set_prompt() {
     local exit_code=$?
     local sym sym_col local_time utc_time kctx kctx_bg
     local git_branch git_bg git_text user_bg user_fg venv_name
+    local git_dirty git_ab git_stash ab_counts ahead behind stash_count
     local line1 prev_bg i
     local -a seg_bg seg_fg seg_text
 
@@ -87,7 +88,28 @@ _set_prompt() {
     if git -C "$PWD" rev-parse --is-inside-work-tree &>/dev/null; then
         git_branch=$(git -C "$PWD" symbolic-ref --quiet --short HEAD 2>/dev/null || git -C "$PWD" rev-parse --short HEAD 2>/dev/null)
         git_bg="$_PEACH_BG"
-        git_text="${_BRANCH} ${git_branch}"
+
+        # dirty: * unstaged changes, + staged changes
+        git_dirty=""
+        git -C "$PWD" diff --quiet 2>/dev/null || git_dirty+="*"
+        git -C "$PWD" diff --staged --quiet 2>/dev/null || git_dirty+="+"
+
+        # ahead/behind upstream — rev-list outputs tab-separated; awk normalises
+        git_ab=""
+        ab_counts=$(git -C "$PWD" rev-list --left-right --count "HEAD...@{upstream}" 2>/dev/null | awk '{print $1, $2}')
+        if [ -n "$ab_counts" ]; then
+            ahead="${ab_counts%% *}"
+            behind="${ab_counts##* }"
+            [ "$ahead" -gt 0 ] && git_ab+=" ⇡${ahead}"
+            [ "$behind" -gt 0 ] && git_ab+=" ⇣${behind}"
+        fi
+
+        # stash count — awk strips leading spaces from wc -l on macOS
+        git_stash=""
+        stash_count=$(git -C "$PWD" stash list 2>/dev/null | wc -l | awk '{print $1}')
+        [ "$stash_count" -gt 0 ] && git_stash=" {${stash_count}}"
+
+        git_text="${_BRANCH} ${git_branch}${git_dirty}${git_ab}${git_stash}"
     else
         git_bg="$_OVERLAY_BG"
         git_text="not git repo"
@@ -133,8 +155,8 @@ _set_prompt() {
     fi
     seg_bg+=("$user_bg");      seg_fg+=("$_TEXT");   seg_text+=(" \u@\h ")
     seg_bg+=("$kctx_bg");      seg_fg+=("$_TEXT");   seg_text+=(" k8s:${kctx} ")
-    seg_bg+=("$_BLUE_BG");     seg_fg+=("$_TEXT");     seg_text+=(" \w ")
     seg_bg+=("$git_bg");       seg_fg+=("$_TEXT");    seg_text+=(" ${git_text} ")
+    seg_bg+=("$_BLUE_BG");     seg_fg+=("$_TEXT");     seg_text+=(" \w ")
     seg_bg+=("$_LAVENDER_BG"); seg_fg+=("$_TEXT"); seg_text+=(" Local ${local_time} ")
     seg_bg+=("$_TEAL_BG");     seg_fg+=("$_TEXT");     seg_text+=(" UTC ${utc_time} ")
 
@@ -161,18 +183,49 @@ PROMPT_COMMAND='_set_prompt'
 export CLICOLOR=1
 export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 
+# Readline — cleaner completion display
+bind 'set show-all-if-ambiguous on'    # single Tab shows all matches
+bind 'set completion-ignore-case on'   # case-insensitive matching
+bind 'set mark-symlinked-directories on'
+bind 'set colored-stats on'            # colour files by type in completion list
+bind 'set colored-completion-prefix on'
+
 # bash-completion@2
 if [ -r "$(brew --prefix 2>/dev/null)/etc/profile.d/bash_completion.sh" ]; then
     . "$(brew --prefix)/etc/profile.d/bash_completion.sh"
 fi
 
+# Strip tab-separated descriptions from COMPREPLY so completions show as a
+# plain list (like ollama) rather than a columnar table with descriptions
+# (like the default docker/cobra output).
+_strip_comp_descriptions() {
+    local i
+    for i in "${!COMPREPLY[@]}"; do
+        COMPREPLY[$i]="${COMPREPLY[$i]%%$'\t'*}"
+    done
+}
+
 # CLI tool completions — add tools here that support "tool completion bash"
 _bash_load_completions() {
-    local tool output
+    local tool output comp_fn wrapper_fn
     for tool in kubectl helm flux kind k3d docker; do
         if command -v "$tool" &>/dev/null; then
             output=$("$tool" completion bash 2>/dev/null)
-            [ -n "$output" ] && eval "$output"
+            if [ -n "$output" ]; then
+                eval "$output"
+                # Wrap the registered completion function to strip descriptions
+                comp_fn=$(complete -p "$tool" 2>/dev/null | sed -n 's/.*-F \([^ ]*\).*/\1/p')
+                if [ -n "$comp_fn" ]; then
+                    wrapper_fn="_nodesc_${tool}"
+                    eval "
+${wrapper_fn}() {
+    ${comp_fn} \"\$@\"
+    _strip_comp_descriptions
+}
+"
+                    complete -F "$wrapper_fn" "$tool"
+                fi
+            fi
         fi
     done
     # extend completion to the k alias for kubectl

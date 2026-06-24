@@ -18,9 +18,12 @@ dotfiles/
 ├── tmux/
 │   └── tmux.conf      → ~/.tmux.conf
 ├── ghostty/
-│   └── config         → ~/.config/ghostty/config
+│   └── config         → ~/.config/ghostty/config  (macOS only)
+├── nvim/
+│   └── init.lua       → ~/.config/nvim/init.lua
 ├── ssh/
-│   └── config         → ~/.ssh/config
+│   └── config         → ~/.ssh/config.d/dotfiles  (merged via Include)
+├── install.sh         — idempotent installer
 ├── hushlogin          → ~/.hushlogin
 └── README.md
 ```
@@ -122,6 +125,19 @@ VSCode writes a symlink to `/usr/local/bin/code`.
 
 ## Deploy
 
+Run the idempotent installer from the repo root — safe to run multiple times:
+
+```bash
+./install.sh
+```
+
+The script symlinks every dotfile, handles nvim, ghostty, tmux, and shell
+configs, and merges the SSH config via `Include` so any existing
+`~/.ssh/config` entries are never destroyed (see SSH section below).
+
+<details>
+<summary>Manual per-file deploy (alternative)</summary>
+
 ```bash
 # Ghostty — requires full quit and relaunch after deploy
 mkdir -p ~/.config/ghostty && cp ghostty/config ~/.config/ghostty/config
@@ -135,21 +151,38 @@ cp bash/bash_profile ~/.bash_profile && cp bash/bashrc ~/.bashrc && cp bash/bash
 # tmux
 cp tmux/tmux.conf ~/.tmux.conf && tmux source-file ~/.tmux.conf
 
-# ssh
-mkdir -p ~/.ssh && cp ssh/config ~/.ssh/config && chmod 600 ~/.ssh/config
+# ssh (safe — uses Include, does not overwrite existing config)
+mkdir -p ~/.ssh/config.d && cp ssh/config ~/.ssh/config.d/dotfiles && chmod 600 ~/.ssh/config.d/dotfiles
+grep -qF 'Include ~/.ssh/config.d/*' ~/.ssh/config 2>/dev/null || printf 'Include ~/.ssh/config.d/*\n\n' | cat - ~/.ssh/config > /tmp/sshcfg && mv /tmp/sshcfg ~/.ssh/config && chmod 600 ~/.ssh/config
+
+# nvim
+mkdir -p ~/.config/nvim && cp nvim/init.lua ~/.config/nvim/init.lua
 
 # Suppress "Last login" message
 cp hushlogin ~/.hushlogin
 ```
+</details>
 
-> Switch to bash: `chsh -s /bin/bash` — revert: `chsh -s /bin/zsh`
+> **Make bash the default shell (macOS):** `chsh -s /bin/bash` — switch back to
+> zsh: `chsh -s /bin/zsh`. Log out and back in for the change to take effect.
 
-> **SSH config** — `ssh/config` points every host at `~/.ssh/id_ed25519` on
-> port 22 and skips host-key checking (`StrictHostKeyChecking no`,
-> `UserKnownHostsFile /dev/null`). If that key has a passphrase,
-> `AddKeysToAgent 5m` caches it in `ssh-agent` for 5 minutes after first use —
-> the same 5-minute window as macOS `sudo`'s default credential cache — so you
-> aren't re-prompted on every connection within that window.
+> **Revert zsh to macOS defaults:** remove the customisations without losing the
+> shell itself:
+> ```bash
+> mv ~/.zshrc ~/.zshrc.bak 2>/dev/null
+> mv ~/.zsh_aliases ~/.zsh_aliases.bak 2>/dev/null
+> exec zsh   # starts a fresh shell with macOS /etc/zshrc defaults
+> ```
+> To fully restore from the repo later: `cp zsh/zshrc ~/.zshrc && cp zsh/zsh_aliases ~/.zsh_aliases && source ~/.zshrc`
+
+> **SSH config** — `ssh/config` is installed to `~/.ssh/config.d/dotfiles` and
+> loaded via an `Include ~/.ssh/config.d/*` directive at the top of
+> `~/.ssh/config`. This means any host blocks you already have in
+> `~/.ssh/config` are preserved. Settings: `IdentityFile ~/.ssh/id_ed25519`,
+> `Port 22`, `StrictHostKeyChecking no`, `UserKnownHostsFile /dev/null`.
+> `AddKeysToAgent 5m` caches the key passphrase in `ssh-agent` for 5 minutes —
+> the same window as macOS `sudo` — so you aren't re-prompted on every
+> connection within that window.
 
 ---
 
@@ -209,6 +242,38 @@ terminal.
 
 ---
 
+## Neovim
+
+`nvim/init.lua` is a zero-plugin minimal config requiring no package manager.
+Deploy: `./install.sh` symlinks it to `~/.config/nvim/init.lua`.
+
+Key choices:
+
+| Setting | Value |
+|---|---|
+| Colour scheme | `habamax` (best built-in dark theme) |
+| Indentation | 4 spaces, `expandtab` |
+| Line numbers | absolute + relative |
+| Clipboard | synced with OS clipboard (`unnamedplus`) |
+| Undo | persistent across sessions (`undofile`) |
+| Mouse | disabled (keyboard-first) |
+| Splits | right + below (mirrors tmux) |
+
+Key bindings (`<leader>` = Space):
+
+| Key | Action |
+|---|---|
+| `<Esc>` | Clear search highlight |
+| `<leader>w` | Save |
+| `<leader>q` / `<leader>Q` | Quit / Quit all |
+| `Ctrl+h/j/k/l` | Focus split (left/down/up/right) |
+| `<leader>e` | Open netrw file explorer (tree view) |
+| `<leader>bn/bp/bd` | Next / prev / delete buffer |
+| `v` + `<`/`>` | Indent and stay in visual mode |
+| `v` + `J`/`K` | Move selected lines down / up |
+
+---
+
 ## Prompt
 
 Two connected lines, joined by a left-edge corner (`╭─`/`╰─`). `[shell]` is
@@ -220,16 +285,26 @@ bright accent. The tmux status bar uses the exact same values. Command always
 starts on a clean line:
 
 ```
-╭─ [zsh] user@host  k8s:my-cluster  ~/full/path  main  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00
+╭─ [zsh] user@host  k8s:my-cluster   main*⇡2⇣1  ~/full/path  Local 2026-05-27 15:30:00  UTC 2026-05-27 13:30:00
 ╰─ $
 ```
 
 When a Python venv is active, it gets its own badge prepended to the bar:
 
 ```
-╭─ [zsh] (.venv)  user@host  k8s:my-cluster  ~/full/path  main  Local ...  UTC ...
+╭─ [zsh] (.venv)  user@host  k8s:my-cluster   main  ~/full/path  Local ...  UTC ...
 ╰─ $
 ```
+
+The git badge (now ordered before the path) shows:
+
+| Suffix | Meaning |
+|---|---|
+| `*` | Unstaged changes |
+| `+` | Staged changes (ready to commit) |
+| `⇡N` | N commits ahead of upstream |
+| `⇣N` | N commits behind upstream |
+| `{N}` | N stashed changesets |
 
 Outside a git repository, the git badge reads `not git repo`. When `HEAD` is
 detached, it shows the short commit hash instead of a branch name.
@@ -348,6 +423,45 @@ detached, it shows the short commit hash instead of a branch name.
 | `kap` / `kdel` | `apply -f` / `delete -f` |
 | `kctx` / `kuse` / `kns` | get contexts / use context / set namespace |
 | `kdes` / `kdp` | `describe` / `describe pod` |
+
+---
+
+## Linux / Debian
+
+The shell (`bash/`, `zsh/`), tmux, nvim, and SSH configs are cross-platform.
+Ghostty is macOS-only; substitute your preferred terminal on Debian.
+
+### Prerequisites (Debian/Ubuntu)
+
+```bash
+sudo apt update
+sudo apt install -y zsh bash tmux neovim git curl jq
+
+# Nerd Font — download and install manually
+mkdir -p ~/.local/share/fonts
+cd ~/.local/share/fonts
+curl -fLO https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+unzip JetBrainsMono.zip -d JetBrainsMono && rm JetBrainsMono.zip
+fc-cache -fv
+```
+
+> bash-completion@2 is usually `bash-completion` from apt; Homebrew PATH logic
+> in `bash/bashrc` is guarded by `[ -f /opt/homebrew/bin/brew ]` so it silently
+> skips on Linux. The `pbcopy`/`pbpaste` aliases won't work — replace with
+> `xclip -selection clipboard` / `xclip -selection clipboard -o` or `wl-copy`/`wl-paste`.
+
+### Deploy (Debian)
+
+```bash
+# From the repo root — same installer, works on Linux too
+./install.sh
+
+# Ghostty config is skipped automatically on non-Darwin; use your terminal's
+# config file for font-family and colour scheme instead.
+
+# Make zsh the default shell
+chsh -s "$(which zsh)"
+```
 
 ---
 

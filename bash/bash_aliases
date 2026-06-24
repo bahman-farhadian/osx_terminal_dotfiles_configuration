@@ -37,6 +37,8 @@ alias password='openssl rand -base64 48'
 
 # Editors
 alias nano='vim'
+alias v='vim'
+alias nv='nvim'
 
 # macOS clipboard
 alias copy='pbcopy'
