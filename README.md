@@ -93,9 +93,9 @@ No sidebar. Open files appear as tabs at the top. Leader key is `\`.
 | Keys | Action |
 |---|---|
 | `\e` | Centered floating file tree — navigate with j/k, Enter to open |
+| `\s` | Save |
 | `Tab` | Next open file |
 | `Shift+Tab` | Previous open file |
-| `Ctrl+s` | Save — works in normal, insert, and visual mode |
 | `\q` | Close current file |
 | `\Q` | Force quit nvim |
 
@@ -125,8 +125,7 @@ No sidebar. Open files appear as tabs at the top. Leader key is `\`.
 | `gr` | Show all references |
 | `\r` | Rename symbol |
 | `\a` | Code actions / quick fixes |
-| `Ctrl+Space` | Trigger autocomplete |
-| `Enter` | Accept suggestion |
+| `Enter` | Accept autocomplete suggestion |
 | `Ctrl+n` / `Ctrl+p` | Move through suggestions |
 
 Filetype support: Python (pyright LSP + autocomplete), bash/sh, YAML, `.cfg`/`.conf`, `.env`, Dockerfile.

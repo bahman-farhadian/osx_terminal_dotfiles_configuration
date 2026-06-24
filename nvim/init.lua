@@ -20,8 +20,8 @@ vim.opt.showmode       = false
 vim.opt.laststatus     = 3
 vim.opt.showtabline    = 2
 
--- Bar cursor in every mode
-vim.opt.guicursor = "a:ver25"
+-- Let the terminal (Ghostty) manage cursor shape — no nvim overrides
+vim.opt.guicursor = ""
 
 -- Indentation
 vim.opt.tabstop     = 4
@@ -136,13 +136,12 @@ require("lazy").setup({
           vim.lsp.enable("pyright")
       end },
 
-    -- Autocomplete
+    -- Autocomplete — auto-triggers, Ctrl+n/p to navigate, Enter to accept
     { "saghen/blink.cmp", version = "1.*", event = { "InsertEnter", "LspAttach" },
       opts = {
           keymap  = {
-              preset        = "default",
-              ["<CR>"]      = { "select_and_accept", "fallback" },
-              ["<C-Space>"] = { "show", "fallback" },
+              preset   = "default",
+              ["<CR>"] = { "select_and_accept", "fallback" },
           },
           sources = { default = { "lsp", "path", "buffer" } },
       } },
@@ -182,25 +181,20 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 
--- ── Key mappings ─────────────────────────────────────────────────────────────
+-- ── Key mappings — all actions use \ prefix ──────────────────────────────────
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
--- Save from any mode
-vim.keymap.set({ "n", "i", "v" }, "<C-s>", "<Esc><cmd>write<CR>", { desc = "Save" })
-
--- File explorer — centered floating tree
-vim.keymap.set("n", "<leader>e", function() Snacks.picker.explorer() end, { desc = "Explorer" })
-
--- Close file / quit
-vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>", { desc = "Close file" })
-vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",   { desc = "Quit all" })
-
+-- \ prefix actions (work from normal mode — Esc first if in insert)
+vim.keymap.set("n", "<leader>s", "<cmd>write<CR>",                              { desc = "Save" })
+vim.keymap.set("n", "<leader>e", function() Snacks.picker.explorer() end,       { desc = "Explorer" })
+vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>",                            { desc = "Close file" })
+vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",                              { desc = "Quit all" })
 -- Switch open files
 vim.keymap.set("n", "<Tab>",   "<cmd>bnext<CR>",     { desc = "Next file" })
 vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev file" })
 
--- Window focus
+-- Window focus (Ctrl+hjkl — these don't conflict with macOS shortcuts)
 vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
