@@ -218,7 +218,16 @@ ${wrapper_fn}() {
     done
     # extend completions to single-letter aliases
     command -v kubectl &>/dev/null && complete -o default -F __start_kubectl k
-    type _nodesc_docker &>/dev/null 2>&1 && complete -F _nodesc_docker d || true
+    type _nodesc_docker  &>/dev/null && complete -F _nodesc_docker  d || true
+
+    # source per-tool completion files so their functions exist, then alias them
+    local _bcd="${HOMEBREW_PREFIX:-/opt/homebrew}/share/bash-completion/completions"
+    if [ -r "$_bcd/git" ]; then
+        . "$_bcd/git"
+        type __git_complete &>/dev/null && __git_complete g __git_main || true
+    fi
+    [ -r "$_bcd/tmux"    ] && . "$_bcd/tmux"    && complete -F _comp_cmd_tmux   t  2>/dev/null || true
+    [ -r "$_bcd/python3" ] && . "$_bcd/python3" && complete -F _comp_cmd_python  py 2>/dev/null || true
 }
 _bash_load_completions
 unset -f _bash_load_completions
