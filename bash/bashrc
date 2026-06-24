@@ -216,8 +216,9 @@ ${wrapper_fn}() {
             fi
         fi
     done
-    # extend completion to the k alias for kubectl
+    # extend completions to single-letter aliases
     command -v kubectl &>/dev/null && complete -o default -F __start_kubectl k
+    type _nodesc_docker &>/dev/null 2>&1 && complete -F _nodesc_docker d || true
 }
 _bash_load_completions
 unset -f _bash_load_completions
