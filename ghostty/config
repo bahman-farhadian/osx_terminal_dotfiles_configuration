@@ -35,9 +35,9 @@ background-opacity = 1
 background-blur = false
 macos-icon = paper
 
-# Padding — clears macOS rounded corners
-window-padding-x = 0
-window-padding-y = 0
+# Padding
+window-padding-x = 1
+window-padding-y = 1
 
 # Title bar — requires full Ghostty restart to apply
 macos-titlebar-style = hidden
