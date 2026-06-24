@@ -129,9 +129,10 @@ require("lazy").setup({
     -- LSP — pyright for Python (brew install pyright)
     { "neovim/nvim-lspconfig", event = { "BufReadPre", "BufNewFile" },
       config = function()
-          require("lspconfig").pyright.setup({
+          vim.lsp.config("pyright", {
               settings = { python = { analysis = { typeCheckingMode = "basic" } } },
           })
+          vim.lsp.enable("pyright")
       end },
 
     -- Autocomplete
