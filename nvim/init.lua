@@ -3,7 +3,7 @@
 vim.g.mapleader      = " "
 vim.g.maplocalleader = " "
 
--- Disable netrw before plugins load (replaced by mini.files)
+-- Disable netrw (replaced by nvim-tree)
 vim.g.loaded_netrw       = 1
 vim.g.loaded_netrwPlugin = 1
 
@@ -18,7 +18,7 @@ vim.opt.sidescrolloff  = 8
 vim.opt.colorcolumn    = "120"
 vim.opt.termguicolors  = true
 vim.opt.showmode       = false
-vim.opt.laststatus     = 2
+vim.opt.laststatus     = 3  -- single global statusline
 
 vim.opt.guicursor = "a:ver25"
 
@@ -84,16 +84,44 @@ require("lazy").setup({
           vim.cmd.colorscheme("catppuccin")
       end },
 
-    -- File explorer — floating navigator, zero layout interference
-    { "echasnovski/mini.files", lazy = false,
-      opts = { windows = { preview = false, width_focus = 30 } },
-      config = function(_, opts)
-          require("mini.files").setup(opts)
-          vim.keymap.set("n", "<leader>e", function()
-              local mf = require("mini.files")
-              if not mf.close() then mf.open(vim.api.nvim_buf_get_name(0), true) end
-          end, { desc = "Toggle explorer" })
+    -- Persistent side-panel file explorer (no layout bugs)
+    { "nvim-tree/nvim-tree.lua", lazy = false,
+      config = function()
+          require("nvim-tree").setup({
+              view    = { width = 30 },
+              filters = { dotfiles = false },
+              git     = { enable = true },
+              renderer = { group_empty = true, highlight_git = true },
+          })
+          vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle explorer" })
+          -- Quit nvim when nvim-tree is the only window left
+          vim.api.nvim_create_autocmd("BufEnter", {
+              callback = function()
+                  if #vim.api.nvim_list_wins() == 1 and vim.bo.filetype == "NvimTree" then
+                      vim.defer_fn(function() vim.cmd("quit") end, 0)
+                  end
+              end,
+          })
       end },
+
+    -- Bottom statusline
+    { "nvim-lualine/lualine.nvim", event = "VeryLazy",
+      opts = {
+          options = {
+              theme                = "catppuccin",
+              icons_enabled        = false,
+              component_separators = "|",
+              section_separators   = "",
+          },
+          sections = {
+              lualine_a = { "mode" },
+              lualine_b = { "branch", "diff", "diagnostics" },
+              lualine_c = { { "filename", path = 1 } },
+              lualine_x = { "filetype" },
+              lualine_y = { "progress" },
+              lualine_z = { "location" },
+          },
+      } },
 
     -- Git signs in gutter
     { "lewis6991/gitsigns.nvim", event = { "BufReadPost", "BufNewFile" }, opts = {} },
@@ -106,12 +134,12 @@ require("lazy").setup({
           })
       end },
 
-    -- Autocomplete — blink.cmp (pre-built binary, no build step needed)
+    -- Autocomplete
     { "saghen/blink.cmp", version = "1.*", event = { "InsertEnter", "LspAttach" },
       opts = {
           keymap  = {
-              preset    = "default",
-              ["<CR>"]  = { "select_and_accept", "fallback" },
+              preset        = "default",
+              ["<CR>"]      = { "select_and_accept", "fallback" },
               ["<C-Space>"] = { "show", "fallback" },
           },
           sources = { default = { "lsp", "path", "buffer" } },
@@ -128,10 +156,9 @@ require("lazy").setup({
 vim.api.nvim_create_autocmd("VimEnter", {
     once = true,
     callback = function()
-        if vim.fn.argc() == 0 then
-            require("mini.files").open(vim.uv.cwd(), false)
-        elseif vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
-            require("mini.files").open(vim.fn.argv(0), false)
+        if vim.fn.argc() == 0 or
+           (vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1) then
+            require("nvim-tree.api").tree.open()
         end
     end,
 })
@@ -141,7 +168,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     callback = function() vim.highlight.on_yank({ timeout = 200 }) end,
 })
 
--- LSP keymaps when a server attaches
+-- LSP keymaps on attach
 vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
         local buf = args.buf

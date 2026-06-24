@@ -84,11 +84,11 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 Minimal plugin config (`nvim/init.lua`). `<leader>` = Space.  
 Plugins install automatically on first launch (requires internet + `git`).
 
-**Plugins:** `catppuccin` · `mini.files` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+**Plugins:** `catppuccin` · `nvim-tree` · `lualine` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
 | Key | Action |
 |---|---|
-| `<leader>e` | Toggle file explorer (mini.files) |
+| `<leader>e` | Toggle file explorer (nvim-tree side panel) |
 | `<leader>w` / `<leader>q` | Save / Quit |
 | `<Esc>` | Clear search highlight |
 | `Ctrl+h/j/k/l` | Focus split |
