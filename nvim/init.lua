@@ -1,10 +1,11 @@
 -- ~/.config/nvim/init.lua
 
-vim.g.mapleader      = ","
-vim.g.maplocalleader = ","
+vim.g.mapleader      = "\\"
+vim.g.maplocalleader = "\\"
 
-vim.g.loaded_netrw       = 1
-vim.g.loaded_netrwPlugin = 1
+-- Netrw as a clean full-screen file browser (\e to open)
+vim.g.netrw_banner    = 0
+vim.g.netrw_liststyle = 0
 
 -- Display
 vim.opt.number         = true
@@ -45,7 +46,6 @@ vim.opt.clipboard = "unnamedplus"
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 
--- Completion
 vim.opt.wildmenu    = true
 vim.opt.wildmode    = "longest:full,full"
 vim.opt.completeopt = "menu,menuone,noselect"
@@ -83,17 +83,9 @@ require("lazy").setup({
           vim.cmd.colorscheme("catppuccin")
       end },
 
-    -- Buffer tabs at the top (shows open files like tmux windows)
+    -- Open files shown as tabs at the top
     { "echasnovski/mini.tabline", version = false, lazy = false,
       config = function() require("mini.tabline").setup() end },
-
-    -- Floating file / grep / buffer picker  (,f / ,g / ,b)
-    { "echasnovski/mini.pick", version = false,
-      keys = {
-          { "<leader>f", function() require("mini.pick").builtin.files() end,      desc = "Find files" },
-          { "<leader>g", function() require("mini.pick").builtin.grep_live() end,  desc = "Grep" },
-          { "<leader>b", function() require("mini.pick").builtin.buffers() end,    desc = "Buffers" },
-      } },
 
     -- Statusline
     { "nvim-lualine/lualine.nvim", event = "VeryLazy",
@@ -137,7 +129,7 @@ require("lazy").setup({
           sources = { default = { "lsp", "path", "buffer" } },
       } },
 
-    -- Multi-cursor: Ctrl+n selects word, repeat to add next match, Ctrl+↑/↓ adds cursor
+    -- Multi-cursor: Ctrl+n on a word, repeat to add next match, Ctrl+Up/Down adds line cursor
     { "mg979/vim-visual-multi", branch = "master" },
 
 }, {
@@ -157,11 +149,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
         local buf = args.buf
         local map = function(k, f) vim.keymap.set("n", k, f, { buffer = buf, silent = true }) end
-        map("K",          vim.lsp.buf.hover)
-        map("gd",         vim.lsp.buf.definition)
-        map("gr",         vim.lsp.buf.references)
-        map("<leader>r",  vim.lsp.buf.rename)
-        map("<leader>a",  vim.lsp.buf.code_action)
+        map("K",           vim.lsp.buf.hover)
+        map("gd",          vim.lsp.buf.definition)
+        map("gr",          vim.lsp.buf.references)
+        map("<leader>r",   vim.lsp.buf.rename)
+        map("<leader>a",   vim.lsp.buf.code_action)
     end,
 })
 
@@ -169,16 +161,20 @@ vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 
 -- ── Key mappings ─────────────────────────────────────────────────────────────
 
+-- Clear search highlight
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
--- Save
-vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>write<CR>",  { desc = "Save" })
+-- Save — works from normal AND insert mode
+vim.keymap.set({ "n", "i", "v" }, "<C-s>", "<Esc><cmd>write<CR>", { desc = "Save" })
+
+-- File browser (netrw opens in current window — Enter to open file, - to go up)
+vim.keymap.set("n", "<leader>e", "<cmd>Ex<CR>", { desc = "File browser" })
 
 -- Close current file / force quit all
-vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>",  { desc = "Close file" })
-vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",    { desc = "Quit all" })
+vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>", { desc = "Close file" })
+vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",   { desc = "Quit all" })
 
--- Switch files — Tab / Shift+Tab (mirrors tmux Shift+←/→)
+-- Switch open files — Tab / Shift+Tab
 vim.keymap.set("n", "<Tab>",   "<cmd>bnext<CR>",     { desc = "Next file" })
 vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev file" })
 

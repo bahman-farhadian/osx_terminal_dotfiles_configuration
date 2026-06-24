@@ -34,7 +34,7 @@ dotfiles/
 
 # Required tools
 brew install bash bash-completion@2 tmux neovim git git-lfs gh vim \
-             btop jq yq curl wget tree pyright ripgrep
+             btop jq yq curl wget tree pyright
 
 # Ghostty — download .dmg from ghostty.org
 # Nerd Font (for prompt glyphs)
@@ -81,25 +81,23 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 
 ## Neovim
 
-Minimal plugin config (`nvim/init.lua`). Leader key: `,`  
+Minimal plugin config (`nvim/init.lua`). Leader key: `\`  
 Plugins install automatically on first launch (requires internet + `git`).
 
-**Plugins:** `catppuccin` · `mini.tabline` · `mini.pick` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+**Plugins:** `catppuccin` · `mini.tabline` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
-No sidebar. Open files appear as tabs at the top. Use `,f` to open a file picker.
+No sidebar. Open files appear as tabs at the top.
 
 **Files**
 
 | Keys | Action |
 |---|---|
-| `,f` | Floating file picker — type to fuzzy search, Enter to open |
-| `,g` | Floating live grep across all files |
-| `,b` | Floating list of open files |
+| `\e` | Open file browser (navigate with j/k, Enter to open, `-` to go up a folder) |
 | `Tab` | Next open file |
 | `Shift+Tab` | Previous open file |
-| `Ctrl+s` | Save (works in normal and insert mode) |
-| `,q` | Close current file |
-| `,Q` | Force quit nvim |
+| `Ctrl+s` | Save — works in normal, insert, and visual mode |
+| `\q` | Close current file |
+| `\Q` | Force quit nvim |
 
 **Windows**
 
@@ -125,8 +123,8 @@ No sidebar. Open files appear as tabs at the top. Use `,f` to open a file picker
 | `K` | Show docs for symbol under cursor |
 | `gd` | Go to definition |
 | `gr` | Show all references |
-| `,r` | Rename symbol |
-| `,a` | Code actions / quick fixes |
+| `\r` | Rename symbol |
+| `\a` | Code actions / quick fixes |
 | `Ctrl+Space` | Trigger autocomplete |
 | `Enter` | Accept suggestion |
 | `Ctrl+n` / `Ctrl+p` | Move through suggestions |
