@@ -123,6 +123,9 @@ require("lazy").setup({
           },
       } },
 
+    -- Multi-cursor — <C-n> select word, <C-n> again adds next match, <C-Up/Down> add cursor
+    { "mg979/vim-visual-multi", branch = "master" },
+
     -- Git signs in gutter
     { "lewis6991/gitsigns.nvim", event = { "BufReadPost", "BufNewFile" }, opts = {} },
 

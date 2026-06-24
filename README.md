@@ -84,19 +84,51 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 Minimal plugin config (`nvim/init.lua`). `<leader>` = Space.  
 Plugins install automatically on first launch (requires internet + `git`).
 
-**Plugins:** `catppuccin` · `nvim-tree` · `lualine` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+**Plugins:** `catppuccin` · `nvim-tree` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+
+**Explorer**
 
 | Key | Action |
 |---|---|
-| `<leader>e` | Toggle file explorer (nvim-tree side panel) |
-| `<leader>w` / `<leader>q` | Save / Quit |
+| `<leader>e` | Toggle nvim-tree side panel |
+| `<CR>` | Open file / expand folder |
+| `a` | New file or folder (end name with `/` for folder) |
+| `d` | Delete |
+| `r` | Rename |
+| `<C-h>` / `<C-l>` | Move focus: explorer ↔ editor |
+
+**Windows & buffers**
+
+| Key | Action |
+|---|---|
+| `<C-h/j/k/l>` | Focus window left / down / up / right |
+| `<leader>w` / `<leader>q` | Save / Quit window |
+| `<leader>Q` | Quit all |
+| `<leader>bn/bp` | Next / prev buffer |
+| `<leader>bd` | Close buffer |
+
+**Editing**
+
+| Key | Action |
+|---|---|
 | `<Esc>` | Clear search highlight |
-| `Ctrl+h/j/k/l` | Focus split |
-| `<leader>bn/bp/bd` | Next / prev / delete buffer |
-| `v` + `<`/`>` | Indent, stay in visual mode |
+| `v` + `<`/`>` | Indent selection, stay in visual |
 | `v` + `J`/`K` | Move selection down / up |
-| `K` / `gd` / `gr` | LSP hover / definition / references |
-| `<leader>rn` / `<leader>ca` | LSP rename / code action |
+| `<C-v>` + `I` | Visual block insert (built-in multi-line) |
+| `<C-n>` | Select word under cursor (multi-cursor) |
+| `<C-n>` again | Add next match as cursor |
+| `<C-Up>` / `<C-Down>` | Add cursor above / below |
+
+**LSP**
+
+| Key | Action |
+|---|---|
+| `K` | Hover docs |
+| `gd` / `gr` | Definition / references |
+| `<leader>rn` | Rename symbol |
+| `<leader>ca` | Code action |
+| `<C-Space>` | Trigger autocomplete |
+| `<CR>` | Accept completion |
 
 Filetype support: Python (pyright LSP + autocomplete), bash/sh, YAML, `.cfg`/`.conf`, `.env`, Dockerfile.
 
