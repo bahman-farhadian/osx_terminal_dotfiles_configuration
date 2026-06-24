@@ -56,10 +56,6 @@ _hdr "ghostty"
 cp_file "$REPO/ghostty/config" "$HOME/.config/ghostty/config"
 _ok "restart Ghostty (Cmd+Q) for font changes to take effect"
 
-_hdr "neovim"
-cp_file "$REPO/nvim/init.lua" "$HOME/.config/nvim/init.lua"
-[ "$HAS_SUDO" = true ] && sudo_cp "$REPO/nvim/init.lua" /var/root/.config/nvim/init.lua || true
-
 _hdr "ssh"
 _upsert_ssh() {
     local config="$1"

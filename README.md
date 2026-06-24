@@ -1,6 +1,12 @@
 # dotfiles
 
-macOS dotfiles for **bash**, **tmux**, **Ghostty**, and **Neovim** — Catppuccin Mocha theme throughout.
+macOS dotfiles for **bash**, **tmux**, and **Ghostty** — Catppuccin Mocha theme throughout.
+
+---
+
+## Screenshot
+
+![Terminal screenshot](Demo.png)
 
 ---
 
@@ -16,8 +22,6 @@ dotfiles/
 │   └── tmux.conf      → ~/.tmux.conf
 ├── ghostty/
 │   └── config         → ~/.config/ghostty/config
-├── nvim/
-│   └── init.lua       → ~/.config/nvim/init.lua
 ├── ssh/
 │   └── config         → ~/.ssh/config.d/dotfiles
 ├── install.sh
@@ -33,8 +37,8 @@ dotfiles/
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Required tools
-brew install bash bash-completion@2 tmux neovim git git-lfs gh vim \
-             btop jq yq curl wget tree pyright
+brew install bash bash-completion@2 tmux git git-lfs gh vim \
+             btop jq yq curl wget tree
 
 # Ghostty — download .dmg from ghostty.org
 # Nerd Font (for prompt glyphs)
@@ -76,60 +80,6 @@ sudo cp bash/bashrc       /var/root/.bashrc
 sudo cp bash/bash_aliases /var/root/.bash_aliases
 sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 ```
-
----
-
-## Neovim
-
-Minimal plugin config (`nvim/init.lua`). Leader key: `\`  
-Plugins install automatically on first launch (requires internet + `git`).
-
-**Plugins:** `catppuccin` · `mini.tabline` · `mini.files` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
-
-No sidebar. Open files appear as tabs at the top. Leader key is `\`.
-
-**Files**
-
-| Keys | Action |
-|---|---|
-| `\e` | Toggle centered floating explorer — `j/k` navigate, `l` or `Enter` open (stays open), `h` go up, `q` close |
-| `\s` | Save |
-| `Tab` | Next open file |
-| `Shift+Tab` | Previous open file |
-| `\q` | Close current file |
-| `\Q` | Force quit nvim |
-
-**Windows**
-
-| Keys | Action |
-|---|---|
-| `\h` / `\j` / `\k` / `\l` | Move focus left / down / up / right |
-
-**Editing**
-
-| Keys | Action |
-|---|---|
-| `Esc` | Clear search highlight |
-| `Option+Left` / `Option+Right` | Move by word (insert and normal mode) |
-| `Ctrl+n` | Select word under cursor — repeat to add each next match |
-| `Ctrl+Option+Up` / `Ctrl+Option+Down` | Add a cursor on the line above / below |
-| `Esc` twice | Exit multi-cursor |
-| `v` then `<` or `>` | Indent selection, stay in visual mode |
-| `v` then `J` or `K` | Move selected lines down / up |
-
-**Code — Python LSP**
-
-| Keys | Action |
-|---|---|
-| `K` | Show docs for symbol under cursor |
-| `gd` | Go to definition |
-| `gr` | Show all references |
-| `\r` | Rename symbol |
-| `\a` | Code actions / quick fixes |
-| `Enter` | Accept autocomplete suggestion |
-| `Ctrl+n` / `Ctrl+p` | Move through suggestions |
-
-Filetype support: Python (pyright LSP + autocomplete), bash/sh, YAML, `.cfg`/`.conf`, `.env`, Dockerfile.
 
 ---
 
@@ -182,7 +132,7 @@ Git badge suffixes: `*` unstaged · `+` staged · `⇡N` ahead · `⇣N` behind 
 |---|---|
 | `c` / `reload` | clear / restart shell |
 | `t` | tmux |
-| `v` / `nv` | vim / nvim |
+| `v` | vim |
 | `pubkey` | print + clipboard first SSH public key |
 | `password` | random base64-48 string |
 | `pubip` / `privip` | external / private IP |
