@@ -20,8 +20,8 @@ vim.opt.showmode       = false
 vim.opt.laststatus     = 3
 vim.opt.showtabline    = 2
 
--- Let the terminal (Ghostty) manage cursor shape — no nvim overrides
-vim.opt.guicursor = ""
+-- Bar cursor in all modes
+vim.opt.guicursor = "a:ver25"
 
 -- Indentation
 vim.opt.tabstop     = 4
@@ -156,9 +156,9 @@ require("lazy").setup({
     change_detection = { notify = false },
 })
 
--- Restore bar cursor when leaving nvim (Ghostty resets to block otherwise)
-vim.api.nvim_create_autocmd("VimLeave", {
-    callback = function() io.write("\27[5 q") end,
+-- Re-enforce bar cursor after all plugins load (prevents plugin overrides)
+vim.api.nvim_create_autocmd("VimEnter", {
+    callback = function() vim.opt.guicursor = "a:ver25" end,
 })
 
 -- Highlight yanked text briefly
@@ -185,20 +185,38 @@ vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
--- \ prefix actions (work from normal mode — Esc first if in insert)
-vim.keymap.set("n", "<leader>s", "<cmd>write<CR>",                              { desc = "Save" })
-vim.keymap.set("n", "<leader>e", function() Snacks.picker.explorer() end,       { desc = "Explorer" })
-vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>",                            { desc = "Close file" })
-vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",                              { desc = "Quit all" })
+-- \ prefix — every user action (Esc first if in insert mode)
+vim.keymap.set("n", "<leader>s", "<cmd>write<CR>", { desc = "Save" })
+vim.keymap.set("n", "<leader>e", function()
+    Snacks.picker.explorer({
+        layout = {
+            layout = {
+                backdrop  = false,
+                width     = 0.45,
+                min_width = 50,
+                height    = 0.85,
+                border    = "rounded",
+                box       = "vertical",
+                title     = " Explorer ",
+                title_pos = "center",
+                { win = "list",  border = "none" },
+                { win = "input", height = 1, border = "top" },
+            },
+        },
+    })
+end, { desc = "Explorer" })
+vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>", { desc = "Close file" })
+vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",   { desc = "Quit all" })
+
+-- Window focus — \ prefix only, no Ctrl in normal mode
+vim.keymap.set("n", "<leader>h", "<C-w>h", { desc = "Window left" })
+vim.keymap.set("n", "<leader>j", "<C-w>j", { desc = "Window down" })
+vim.keymap.set("n", "<leader>k", "<C-w>k", { desc = "Window up" })
+vim.keymap.set("n", "<leader>l", "<C-w>l", { desc = "Window right" })
+
 -- Switch open files
 vim.keymap.set("n", "<Tab>",   "<cmd>bnext<CR>",     { desc = "Next file" })
 vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev file" })
-
--- Window focus (Ctrl+hjkl — these don't conflict with macOS shortcuts)
-vim.keymap.set("n", "<C-h>", "<C-w>h")
-vim.keymap.set("n", "<C-j>", "<C-w>j")
-vim.keymap.set("n", "<C-k>", "<C-w>k")
-vim.keymap.set("n", "<C-l>", "<C-w>l")
 
 -- Visual mode
 vim.keymap.set("v", "<", "<gv")

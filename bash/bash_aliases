@@ -38,7 +38,7 @@ alias password='openssl rand -base64 48'
 # Editors
 alias nano='vim'
 alias v='vim'
-alias nv='nvim'
+nv() { nvim "$@"; printf '\e[6 q'; }  # restore bar cursor after nvim exits
 
 # macOS clipboard
 alias copy='pbcopy'

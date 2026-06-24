@@ -103,7 +103,7 @@ No sidebar. Open files appear as tabs at the top. Leader key is `\`.
 
 | Keys | Action |
 |---|---|
-| `Ctrl+h/j/k/l` | Move focus left / down / up / right |
+| `\h` / `\j` / `\k` / `\l` | Move focus left / down / up / right |
 
 **Editing**
 
