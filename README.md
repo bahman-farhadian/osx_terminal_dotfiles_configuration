@@ -34,7 +34,7 @@ dotfiles/
 
 # Required tools
 brew install bash bash-completion@2 tmux neovim git git-lfs gh vim \
-             btop jq yq curl wget tree pyright tree-sitter
+             btop jq yq curl wget tree pyright
 
 # Ghostty — download .dmg from ghostty.org
 # Nerd Font (for prompt glyphs)
@@ -84,7 +84,7 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 Minimal plugin config (`nvim/init.lua`). `<leader>` = Space.  
 Plugins install automatically on first launch (requires internet + `git`).
 
-**Plugins:** `catppuccin` · `mini.files` · `nvim-treesitter` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+**Plugins:** `catppuccin` · `mini.files` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
 | Key | Action |
 |---|---|

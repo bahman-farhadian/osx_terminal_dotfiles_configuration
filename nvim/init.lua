@@ -3,12 +3,6 @@
 vim.g.mapleader      = " "
 vim.g.maplocalleader = " "
 
--- Ensure Homebrew tools (tree-sitter, pyright, etc.) are visible to nvim jobs
-local _brew_bin = (vim.env.HOMEBREW_PREFIX or "/opt/homebrew") .. "/bin"
-if not vim.env.PATH:find(_brew_bin, 1, true) then
-    vim.env.PATH = _brew_bin .. ":" .. vim.env.PATH
-end
-
 -- Disable netrw before plugins load (replaced by mini.files)
 vim.g.loaded_netrw       = 1
 vim.g.loaded_netrwPlugin = 1
@@ -99,18 +93,6 @@ require("lazy").setup({
               local mf = require("mini.files")
               if not mf.close() then mf.open(vim.api.nvim_buf_get_name(0), true) end
           end, { desc = "Toggle explorer" })
-      end },
-
-    -- Syntax highlighting (master branch — stable API, uses system C compiler, no tree-sitter CLI)
-    { "nvim-treesitter/nvim-treesitter", branch = "master", build = ":TSUpdate",
-      config = function()
-          ---@diagnostic disable-next-line: missing-fields
-          require("nvim-treesitter.configs").setup({
-              ensure_installed = { "python", "bash", "lua", "yaml", "json", "dockerfile", "toml" },
-              auto_install     = true,
-              highlight        = { enable = true },
-              indent           = { enable = true },
-          })
       end },
 
     -- Git signs in gutter
