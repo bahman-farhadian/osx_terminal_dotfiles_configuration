@@ -150,6 +150,7 @@ Git badge suffixes: `*` unstaged · `+` staged · `⇡N` ahead · `⇣N` behind 
 | `pubkey` | print + clipboard first SSH public key |
 | `password` | random base64-48 string |
 | `pubip` / `privip` | external / private IP |
+| `cpy` | pipe filter — `cmd 2>&1 \| cpy` prints and copies output |
 
 **Git:** `g gs ga gaa gc gca gco gcob gb gl gd gds gp gpf gpl gpr gst gstp gstl gf grb gcp gwip`
 

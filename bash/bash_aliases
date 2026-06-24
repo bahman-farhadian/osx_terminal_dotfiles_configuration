@@ -43,12 +43,7 @@ alias nv='nvim'
 # macOS clipboard
 alias copy='pbcopy'
 alias paste='pbpaste'
-# Re-run the previous command and copy its stdout+stderr to the clipboard
-cpy() {
-    local cmd
-    cmd=$(HISTTIMEFORMAT='' history 2 | awk 'NR==1{$1=""; print substr($0,2)}')
-    eval "$cmd" 2>&1 | tee >(pbcopy)
-}
+cpy() { tee >(pbcopy); }  # pipe filter: cmd 2>&1 | cpy
 
 # Homebrew
 alias brewup='brew update && brew upgrade && brew upgrade --cask && brew cleanup && brew doctor'

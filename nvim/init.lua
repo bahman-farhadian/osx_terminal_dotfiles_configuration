@@ -95,6 +95,16 @@ vim.api.nvim_create_autocmd("VimEnter", {
     end,
 })
 
+-- When the last file buffer is closed and only netrw remains, open a new empty buffer
+-- so the layout stays intact (explorer left, content right)
+vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function()
+        if vim.bo.filetype == "netrw" and vim.fn.winnr("$") == 1 then
+            vim.cmd("enew")
+        end
+    end,
+})
+
 -- LSP — Python via pyright (install: brew install pyright)
 vim.api.nvim_create_autocmd("FileType", {
     pattern  = { "python" },
@@ -102,7 +112,7 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.lsp.start({
             name     = "pyright",
             cmd      = { "pyright-langserver", "--stdio" },
-            root_dir = vim.fs.root(0, { "pyproject.toml", "setup.py", "requirements.txt", ".git" }),
+            root_dir = vim.fs.root(0, { "pyproject.toml", "setup.py", "requirements.txt", ".git" }) or vim.fn.getcwd(),
             settings = { python = { analysis = { typeCheckingMode = "basic" } } },
         })
     end,
@@ -113,6 +123,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
         local buf = args.buf
         if vim.lsp.completion then  -- nvim 0.11+ built-in autocomplete
             vim.lsp.completion.enable(true, args.data.client_id, buf, { autotrigger = true })
+        else
+            vim.keymap.set("i", "<C-Space>", "<C-x><C-o>", { buffer = buf })
         end
         local map = function(k, f) vim.keymap.set("n", k, f, { buffer = buf, silent = true }) end
         map("K",          vim.lsp.buf.hover)
