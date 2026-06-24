@@ -94,11 +94,11 @@ require("lazy").setup({
               renderer = { group_empty = true, highlight_git = true },
           })
           vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle explorer" })
-          -- Quit nvim when nvim-tree is the only window left
+          -- When nvim-tree is the only window left, exit nvim cleanly
           vim.api.nvim_create_autocmd("BufEnter", {
               callback = function()
                   if #vim.api.nvim_list_wins() == 1 and vim.bo.filetype == "NvimTree" then
-                      vim.defer_fn(function() vim.cmd("quit") end, 0)
+                      vim.defer_fn(function() vim.cmd("qall") end, 0)
                   end
               end,
           })
@@ -190,20 +190,28 @@ vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 -- Key mappings
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
-vim.keymap.set("n", "<leader>w", "<cmd>write<CR>",  { desc = "Save" })
-vim.keymap.set("n", "<leader>q", "<cmd>quit<CR>",   { desc = "Quit" })
-vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",  { desc = "Quit all" })
+-- Save
+vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>write<CR>", { desc = "Save" })
+vim.keymap.set("n", "<leader>w",       "<cmd>write<CR>", { desc = "Save" })
 
+-- Close current file (buffer) — does NOT quit nvim
+vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>", { desc = "Close file" })
+
+-- Force quit nvim entirely
+vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>", { desc = "Quit all" })
+
+-- Window navigation
 vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
 vim.keymap.set("n", "<C-l>", "<C-w>l")
 
+-- Visual mode
 vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
-vim.keymap.set("n", "<leader>bn", "<cmd>bnext<CR>",     { desc = "Next buffer" })
-vim.keymap.set("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Prev buffer" })
-vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<CR>",   { desc = "Delete buffer" })
+-- Switch open files
+vim.keymap.set("n", "<leader>bn", "<cmd>bnext<CR>",     { desc = "Next file" })
+vim.keymap.set("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Prev file" })

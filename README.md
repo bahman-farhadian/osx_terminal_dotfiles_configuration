@@ -103,10 +103,10 @@ Plugins install automatically on first launch (requires internet + `git`).
 
 | Keys | Action |
 |---|---|
+| `Ctrl+s` | Save current file (works in normal and insert mode) |
 | `Space+w` | Save current file |
-| `Space+q` | Close current window |
-| `Space+Q` | Quit everything |
-| `Space+bd` | Close current file (keep window) |
+| `Space+q` | Close current file |
+| `Space+Q` | Force quit nvim entirely |
 | `Space+bn` / `Space+bp` | Next / previous open file |
 
 **Moving between splits**
