@@ -108,7 +108,7 @@ require("lazy").setup({
     { "nvim-lualine/lualine.nvim", event = "VeryLazy",
       opts = {
           options = {
-              theme                = "catppuccin",
+              theme                = "catppuccin-mocha",
               icons_enabled        = false,
               component_separators = "|",
               section_separators   = "",
