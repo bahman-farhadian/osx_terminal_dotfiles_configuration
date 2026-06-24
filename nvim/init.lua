@@ -3,6 +3,12 @@
 vim.g.mapleader      = " "
 vim.g.maplocalleader = " "
 
+-- Ensure Homebrew tools (tree-sitter, pyright, etc.) are visible to nvim jobs
+local _brew_bin = (vim.env.HOMEBREW_PREFIX or "/opt/homebrew") .. "/bin"
+if not vim.env.PATH:find(_brew_bin, 1, true) then
+    vim.env.PATH = _brew_bin .. ":" .. vim.env.PATH
+end
+
 -- Disable netrw before plugins load (replaced by mini.files)
 vim.g.loaded_netrw       = 1
 vim.g.loaded_netrwPlugin = 1
