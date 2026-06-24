@@ -36,43 +36,32 @@ export VISUAL=vim
 # Prevent venv from overwriting our custom prompt
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 
-# Catppuccin Mocha — one palette for the whole terminal UI. Every badge
-# background is its Mocha accent blended 30% into the Base #1e1e2e terminal
-# background, so all badges share the same undertone and visual weight; all
-# badge text is the bright neutral Text colour for crystal-clear contrast
-# against every tinted background.
-# (tmux uses these exact values too — see tmux/tmux.conf.)
-_OVERLAY='108;112;134'     # Overlay0 (corners / connectors)              #6c7086
-_TEXT='205;214;244'        # Text     (not-git badge text)                #cdd6f4
-
-_GREEN='166;227;161'       # Green    ([shell] text / user segment / exit ok) #a6e3a1
-_GREEN_BG='71;89;80'       # Green bg    (user segment)                   #475950
-_RED='243;139;168'         # Red      (root / disconnected)               #f38ba8
-_RED_BG='94;63;83'         # Red bg      (root / disconnected segment)    #5e3f53
-_BLUE='137;180;250'        # Blue     (path segment)                      #89b4fa
-_BLUE_BG='62;75;107'       # Blue bg     (path segment)                   #3e4b6b
-_MAUVE='203;166;247'       # Mauve    (venv segment)                      #cba6f7
-_MAUVE_BG='82;71;106'      # Mauve bg    (venv segment)                   #52476a
-_PEACH='250;179;135'       # Peach    (git branch segment)                #fab387
-_PEACH_BG='96;75;73'       # Peach bg    (git branch segment)             #604b49
-_LAVENDER='180;190;254'    # Lavender (local time segment)                #b4befe
-_LAVENDER_BG='75;78;108'   # Lavender bg (local time segment)             #4b4e6c
-_TEAL='148;226;213'        # Teal     (UTC time segment)                  #94e2d5
-_TEAL_BG='65;89;96'        # Teal bg     (UTC time segment)               #415960
-_SKY='137;220;235'         # Sky      (kubectl context segment)           #89dceb
-_SKY_BG='62;87;103'        # Sky bg      (kubectl context segment)        #3e5767
-_OVERLAY_BG='53;55;72'     # Overlay bg  (not-git segment)                #353748
+# Catppuccin Mocha — badge backgrounds = accent blended 30% into Base #1e1e2e
+_OVERLAY='108;112;134'
+_TEXT='205;214;244'
+_GREEN='166;227;161'
+_GREEN_BG='71;89;80'
+_RED='243;139;168'
+_RED_BG='94;63;83'
+_BLUE='137;180;250'
+_BLUE_BG='62;75;107'
+_MAUVE='203;166;247'
+_MAUVE_BG='82;71;106'
+_PEACH='250;179;135'
+_PEACH_BG='96;75;73'
+_LAVENDER='180;190;254'
+_LAVENDER_BG='75;78;108'
+_TEAL='148;226;213'
+_TEAL_BG='65;89;96'
+_SKY='137;220;235'
+_SKY_BG='62;87;103'
+_OVERLAY_BG='53;55;72'
 _RST='\[\e[0m\]'
 
-# Powerline glyphs — require a Nerd Font (see README "Fonts" section)
-_SEP=''                # solid right-pointing segment separator
-_BRANCH=''             # git branch icon
+# Powerline glyphs (requires Nerd Font)
+_SEP=''
+_BRANCH=''
 
-# Prompt — two connected lines. [shell] is plain text; everything from
-# user@host to UTC time is a continuous bar of dark-tinted badge segments
-# with bright accent-coloured text:
-#   ╭─ [bash]  user@host  k8s:cluster  /path  branch  Local ...  UTC ...
-#   ╰─ $ (green ok / red error)   ← command starts here
 _set_prompt() {
     local exit_code=$?
     local sym sym_col local_time utc_time kctx kctx_bg
@@ -84,17 +73,14 @@ _set_prompt() {
     local_time=$(date '+%Y-%m-%d %H:%M:%S')
     utc_time=$(date -u '+%Y-%m-%d %H:%M:%S')
 
-    # git branch segment — current branch/commit, or "not git repo" outside a repo
     if git -C "$PWD" rev-parse --is-inside-work-tree &>/dev/null; then
         git_branch=$(git -C "$PWD" symbolic-ref --quiet --short HEAD 2>/dev/null || git -C "$PWD" rev-parse --short HEAD 2>/dev/null)
         git_bg="$_PEACH_BG"
 
-        # dirty: * unstaged changes, + staged changes
         git_dirty=""
         git -C "$PWD" diff --quiet 2>/dev/null || git_dirty+="*"
         git -C "$PWD" diff --staged --quiet 2>/dev/null || git_dirty+="+"
 
-        # ahead/behind upstream — rev-list outputs tab-separated; awk normalises
         git_ab=""
         ab_counts=$(git -C "$PWD" rev-list --left-right --count "HEAD...@{upstream}" 2>/dev/null | awk '{print $1, $2}')
         if [ -n "$ab_counts" ]; then
@@ -104,7 +90,6 @@ _set_prompt() {
             [ "$behind" -gt 0 ] && git_ab+=" ⇣${behind}"
         fi
 
-        # stash count — awk strips leading spaces from wc -l on macOS
         git_stash=""
         stash_count=$(git -C "$PWD" stash list 2>/dev/null | wc -l | awk '{print $1}')
         [ "$stash_count" -gt 0 ] && git_stash=" {${stash_count}}"
@@ -115,7 +100,6 @@ _set_prompt() {
         git_text="not git repo"
     fi
 
-    # user/host segment colour — root = red alarm
     if [ "$(id -u)" -eq 0 ]; then
         sym='#'
         user_bg="$_RED_BG"
@@ -126,7 +110,6 @@ _set_prompt() {
         user_fg="$_GREEN"
     fi
 
-    # kubectl current context — shows live cluster or "disconnected"
     if command -v kubectl &>/dev/null; then
         kctx=$(kubectl config current-context 2>/dev/null)
         if [ -n "$kctx" ]; then
@@ -146,7 +129,6 @@ _set_prompt() {
         sym_col="$_RED"
     fi
 
-    # badge segments — venv (optional), user@host, k8s, path, git, Local, UTC
     seg_bg=() seg_fg=() seg_text=()
 
     if [ -n "$VIRTUAL_ENV" ]; then
@@ -162,7 +144,6 @@ _set_prompt() {
     seg_bg+=("$_LAVENDER_BG"); seg_fg+=("$_TEXT"); seg_text+=(" Local ${local_time} ")
     seg_bg+=("$_TEAL_BG");     seg_fg+=("$_TEXT");     seg_text+=(" UTC ${utc_time} ")
 
-    # ╭─ [shell] tag — plain text, not part of the highlighted bar
     line1="\[\e[38;2;${_OVERLAY}m\]╭─${_RST} \[\e[38;2;${user_fg}m\][bash]${_RST} "
 
     prev_bg=""
@@ -185,15 +166,14 @@ PROMPT_COMMAND='_set_prompt'
 export CLICOLOR=1
 export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 
-# Readline — cleaner completion display
+# readline
 bind 'set show-all-if-ambiguous on'    # single Tab shows all matches
 bind 'set completion-ignore-case on'   # case-insensitive matching
 bind 'set mark-symlinked-directories on'
 bind 'set colored-stats on'            # colour files by type in completion list
 bind 'set colored-completion-prefix on'
 
-# bash-completion@2 — must load before tool completions; use $HOMEBREW_PREFIX
-# set by `brew shellenv` above (avoids spawning a slow brew --prefix subprocess)
+# bash-completion@2 — load before tool completions
 _bc="${HOMEBREW_PREFIX:-/opt/homebrew}/etc/profile.d/bash_completion.sh"
 [ -r "$_bc" ] && . "$_bc"
 unset _bc

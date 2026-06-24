@@ -3,7 +3,7 @@
 vim.g.mapleader      = " "
 vim.g.maplocalleader = " "
 
--- ── Display ───────────────────────────────────────────────────────────────
+-- Display
 vim.opt.number         = true
 vim.opt.relativenumber = false
 vim.opt.cursorline     = true
@@ -16,47 +16,46 @@ vim.opt.termguicolors  = true
 vim.opt.showmode       = false
 vim.opt.laststatus     = 2
 
--- ── Cursor — bar cursor universally (all modes including no-file startup) ──
+-- Cursor — bar cursor universally (all modes including no-file startup)
 vim.opt.guicursor = "a:ver25"
 
--- ── Colour ────────────────────────────────────────────────────────────────
+-- Colour
 vim.cmd("colorscheme habamax")
 
--- ── Indentation ───────────────────────────────────────────────────────────
+-- Indentation
 vim.opt.tabstop     = 4
 vim.opt.shiftwidth  = 4
 vim.opt.expandtab   = true
 vim.opt.autoindent  = true
 vim.opt.smartindent = true
 
--- ── Search ────────────────────────────────────────────────────────────────
+-- Search
 vim.opt.ignorecase = true
 vim.opt.smartcase  = true
 vim.opt.hlsearch   = true
 vim.opt.incsearch  = true
 
--- ── Files ─────────────────────────────────────────────────────────────────
+-- Files
 vim.opt.swapfile  = false
 vim.opt.backup    = false
 vim.opt.undofile  = true
 vim.opt.clipboard = "unnamedplus"
 
--- ── Splits ────────────────────────────────────────────────────────────────
+-- Splits
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 
--- ── Completion ────────────────────────────────────────────────────────────
+-- Completion
 vim.opt.wildmenu    = true
 vim.opt.wildmode    = "longest:full,full"
 vim.opt.completeopt = "menuone,noselect"
 
--- ── Misc ──────────────────────────────────────────────────────────────────
+-- Misc
 vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 vim.opt.mouse      = ""
 
--- ── Filetype detection ────────────────────────────────────────────────────
--- Map extra extensions to known filetypes so syntax + indentation work
+-- Filetype detection
 vim.filetype.add({
     extension = {
         cfg  = "dosini",
@@ -72,17 +71,15 @@ vim.filetype.add({
     },
 })
 
--- Bash: treat sh files as bash (most modern scripts use bash constructs)
 vim.g.is_bash = 1
 
--- ── File explorer — netrw configured as a VSCode-style side panel ─────────
-vim.g.netrw_banner       = 0      -- hide the top info banner
-vim.g.netrw_liststyle    = 3      -- tree view
-vim.g.netrw_browse_split = 4      -- open file in the previous (right) window
-vim.g.netrw_altv         = 1      -- split vertically when pressing 'v'
-vim.g.netrw_winsize      = 25     -- explorer takes 25% of the total width
+-- File explorer — netrw configured as a VSCode-style side panel
+vim.g.netrw_banner       = 0
+vim.g.netrw_liststyle    = 3
+vim.g.netrw_browse_split = 4
+vim.g.netrw_altv         = 1
+vim.g.netrw_winsize      = 25
 
--- <leader>e toggles the side-panel explorer (Lexplore is a built-in toggle)
 vim.keymap.set("n", "<leader>e", "<cmd>Lexplore<CR>", { desc = "Toggle explorer" })
 
 -- Auto-open explorer: no args → current dir (like `code .`); dir arg → that dir
@@ -96,27 +93,23 @@ vim.api.nvim_create_autocmd("VimEnter", {
     end,
 })
 
--- ── Key mappings ──────────────────────────────────────────────────────────
+-- Key mappings
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
--- Save / quit
 vim.keymap.set("n", "<leader>w", "<cmd>write<CR>",  { desc = "Save" })
 vim.keymap.set("n", "<leader>q", "<cmd>quit<CR>",   { desc = "Quit" })
 vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",  { desc = "Quit all" })
 
--- Split navigation (mirrors tmux Ctrl+b h/j/k/l)
 vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
 vim.keymap.set("n", "<C-l>", "<C-w>l")
 
--- Visual mode — stay in mode after indent, move lines
 vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 
--- Buffer navigation
 vim.keymap.set("n", "<leader>bn", "<cmd>bnext<CR>",     { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Prev buffer" })
 vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<CR>",   { desc = "Delete buffer" })
