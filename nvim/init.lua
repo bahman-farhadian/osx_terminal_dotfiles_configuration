@@ -87,23 +87,20 @@ require("lazy").setup({
     { "echasnovski/mini.tabline", version = false, lazy = false,
       config = function() require("mini.tabline").setup() end },
 
-    -- Floating centered file explorer (\e) — same plugin as the screenshot
-    { "folke/snacks.nvim", priority = 1000, lazy = false,
-      opts = {
-          -- Only the picker is used (for the explorer tree)
-          picker       = { enabled = true },
-          explorer     = { enabled = false },
-          bigfile      = { enabled = false },
-          dashboard    = { enabled = false },
-          indent       = { enabled = false },
-          input        = { enabled = false },
-          notifier     = { enabled = false },
-          quickfile    = { enabled = false },
-          scope        = { enabled = false },
-          scroll       = { enabled = false },
-          statuscolumn = { enabled = false },
-          words        = { enabled = false },
-      } },
+    -- Floating centered file explorer — stays open when you open a file (\e to toggle)
+    { "echasnovski/mini.files", version = false,
+      config = function()
+          require("mini.files").setup({
+              windows = {
+                  preview       = false,
+                  width_focus   = 90,
+                  width_nofocus = 20,
+              },
+              options = {
+                  use_as_default_explorer = false,
+              },
+          })
+      end },
 
     -- Statusline
     { "nvim-lualine/lualine.nvim", event = "VeryLazy",
@@ -146,8 +143,15 @@ require("lazy").setup({
           sources = { default = { "lsp", "path", "buffer" } },
       } },
 
-    -- Multi-cursor: Ctrl+n on a word, repeat to add next match, Ctrl+Up/Down adds line
-    { "mg979/vim-visual-multi", branch = "master" },
+    -- Multi-cursor: Ctrl+n on word to add matches
+    -- Ctrl+Option+Up/Down to add cursor above/below (avoids macOS Mission Control conflict)
+    { "mg979/vim-visual-multi", branch = "master",
+      init = function()
+          vim.g.VM_maps = {
+              ["Add Cursor Up"]   = "<C-M-Up>",
+              ["Add Cursor Down"] = "<C-M-Down>",
+          }
+      end },
 
 }, {
     ui               = { border = "rounded" },
@@ -179,6 +183,31 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end,
 })
 
+-- mini.files: center the floating window and open files without closing the explorer
+vim.api.nvim_create_autocmd("User", {
+    pattern  = "MiniFilesWindowOpen",
+    callback = function(args)
+        local win = args.data.win_id
+        local cfg = vim.api.nvim_win_get_config(win)
+        cfg.row = math.floor((vim.o.lines   - (cfg.height or 20)) / 2)
+        cfg.col = math.floor((vim.o.columns - (cfg.width  or 90)) / 2)
+        vim.api.nvim_win_set_config(win, cfg)
+    end,
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern  = "MiniFilesBufferCreate",
+    callback = function(args)
+        local buf = args.data.buf_id
+        -- l and Enter open file/dir but keep the explorer focused
+        local go_in_stay = function()
+            require("mini.files").go_in({ close_on_file = false })
+        end
+        vim.keymap.set("n", "<CR>", go_in_stay, { buffer = buf, desc = "Open, stay in explorer" })
+        vim.keymap.set("n", "l",    go_in_stay, { buffer = buf, desc = "Open, stay in explorer" })
+    end,
+})
+
 vim.diagnostic.config({ virtual_text = true, signs = true, underline = true })
 
 -- ── Key mappings — all actions use \ prefix ──────────────────────────────────
@@ -188,23 +217,12 @@ vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 -- \ prefix — every user action (Esc first if in insert mode)
 vim.keymap.set("n", "<leader>s", "<cmd>write<CR>", { desc = "Save" })
 vim.keymap.set("n", "<leader>e", function()
-    Snacks.picker.explorer({
-        layout = {
-            layout = {
-                backdrop  = false,
-                width     = 0.45,
-                min_width = 50,
-                height    = 0.85,
-                border    = "rounded",
-                box       = "vertical",
-                title     = " Explorer ",
-                title_pos = "center",
-                { win = "list",  border = "none" },
-                { win = "input", height = 1, border = "top" },
-            },
-        },
-    })
-end, { desc = "Explorer" })
+    local mf   = require("mini.files")
+    local path = vim.api.nvim_buf_get_name(0)
+    if not mf.close() then
+        mf.open(path ~= "" and path or vim.fn.getcwd(), false)
+    end
+end, { desc = "Explorer (toggle)" })
 vim.keymap.set("n", "<leader>q", "<cmd>bdelete<CR>", { desc = "Close file" })
 vim.keymap.set("n", "<leader>Q", "<cmd>qall!<CR>",   { desc = "Quit all" })
 
@@ -217,6 +235,13 @@ vim.keymap.set("n", "<leader>l", "<C-w>l", { desc = "Window right" })
 -- Switch open files
 vim.keymap.set("n", "<Tab>",   "<cmd>bnext<CR>",     { desc = "Next file" })
 vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev file" })
+
+-- Option+Left/Right — word navigation (matches macOS convention)
+-- Works in insert mode; macos-option-as-alt = true in Ghostty sends Alt sequences
+vim.keymap.set("i", "<M-Left>",  "<C-o>b")
+vim.keymap.set("i", "<M-Right>", "<C-o>w")
+vim.keymap.set("n", "<M-Left>",  "b")
+vim.keymap.set("n", "<M-Right>", "w")
 
 -- Visual mode
 vim.keymap.set("v", "<", "<gv")

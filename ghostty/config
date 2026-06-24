@@ -44,7 +44,7 @@ macos-titlebar-style = hidden
 
 # Vertical bar cursor
 cursor-style = bar
-cursor-style-blink = true
+cursor-style-blink = false
 
 # Disabled — use tmux copy-mode for scrolling
 scrollback-limit = 0

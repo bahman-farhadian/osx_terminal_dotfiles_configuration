@@ -84,7 +84,7 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 Minimal plugin config (`nvim/init.lua`). Leader key: `\`  
 Plugins install automatically on first launch (requires internet + `git`).
 
-**Plugins:** `catppuccin` · `mini.tabline` · `snacks.nvim` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
+**Plugins:** `catppuccin` · `mini.tabline` · `mini.files` · `lualine` · `vim-visual-multi` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
 No sidebar. Open files appear as tabs at the top. Leader key is `\`.
 
@@ -92,7 +92,7 @@ No sidebar. Open files appear as tabs at the top. Leader key is `\`.
 
 | Keys | Action |
 |---|---|
-| `\e` | Centered floating file tree — navigate with j/k, Enter to open |
+| `\e` | Toggle centered floating explorer — `j/k` navigate, `l` or `Enter` open (stays open), `h` go up, `q` close |
 | `\s` | Save |
 | `Tab` | Next open file |
 | `Shift+Tab` | Previous open file |
@@ -110,8 +110,9 @@ No sidebar. Open files appear as tabs at the top. Leader key is `\`.
 | Keys | Action |
 |---|---|
 | `Esc` | Clear search highlight |
+| `Option+Left` / `Option+Right` | Move by word (insert and normal mode) |
 | `Ctrl+n` | Select word under cursor — repeat to add each next match |
-| `Ctrl+Up` / `Ctrl+Down` | Add a cursor on the line above / below |
+| `Ctrl+Option+Up` / `Ctrl+Option+Down` | Add a cursor on the line above / below |
 | `Esc` twice | Exit multi-cursor |
 | `v` then `<` or `>` | Indent selection, stay in visual mode |
 | `v` then `J` or `K` | Move selected lines down / up |
