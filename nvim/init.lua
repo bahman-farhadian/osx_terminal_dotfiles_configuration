@@ -1,7 +1,11 @@
--- ~/.config/nvim/init.lua — minimal, no plugins
+-- ~/.config/nvim/init.lua
 
 vim.g.mapleader      = " "
 vim.g.maplocalleader = " "
+
+-- Disable netrw before plugins load (replaced by mini.files)
+vim.g.loaded_netrw       = 1
+vim.g.loaded_netrwPlugin = 1
 
 -- Display
 vim.opt.number         = true
@@ -16,11 +20,7 @@ vim.opt.termguicolors  = true
 vim.opt.showmode       = false
 vim.opt.laststatus     = 2
 
--- Cursor — bar cursor universally (all modes including no-file startup)
 vim.opt.guicursor = "a:ver25"
-
--- Colour
-vim.cmd("colorscheme habamax")
 
 -- Indentation
 vim.opt.tabstop     = 4
@@ -57,75 +57,106 @@ vim.opt.mouse      = ""
 
 -- Filetype detection
 vim.filetype.add({
-    extension = {
-        cfg  = "dosini",
-        conf = "dosini",
-    },
-    filename = {
-        [".env"]          = "sh",
-        ["Dockerfile"]    = "dockerfile",
-    },
-    pattern = {
-        [".*%.env%.[%w_]+"] = "sh",     -- .env.production, .env.local, …
+    extension = { cfg = "dosini", conf = "dosini" },
+    filename  = { [".env"] = "sh", ["Dockerfile"] = "dockerfile" },
+    pattern   = {
+        [".*%.env%.[%w_]+"] = "sh",
         [".*/%.ssh/config"] = "sshconfig",
     },
 })
-
 vim.g.is_bash = 1
 
--- File explorer
-vim.g.netrw_banner       = 0
-vim.g.netrw_liststyle    = 3
-vim.g.netrw_browse_split = 4
-vim.g.netrw_altv         = 1
-vim.g.netrw_winsize      = 25
-vim.g.netrw_fastbrowse   = 0  -- disable dir caching; prevents ghost buffers after open/close
-vim.g.netrw_keepdir      = 0  -- keep cwd in sync with explorer
+-- Bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.uv.fs_stat(lazypath) then
+    vim.fn.system({ "git", "clone", "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
+end
+vim.opt.rtp:prepend(lazypath)
 
-vim.keymap.set("n", "<leader>e", "<cmd>Lexplore<CR>", { desc = "Toggle explorer" })
+require("lazy").setup({
 
--- Auto-open explorer: no args → current dir (like `code .`); dir arg → that dir
+    -- Catppuccin Mocha — matches terminal/Ghostty theme
+    { "catppuccin/nvim", name = "catppuccin", priority = 1000,
+      opts = { flavour = "mocha" },
+      config = function(_, opts)
+          require("catppuccin").setup(opts)
+          vim.cmd.colorscheme("catppuccin")
+      end },
+
+    -- File explorer — floating navigator, zero layout interference
+    { "echasnovski/mini.files", lazy = false,
+      opts = { windows = { preview = false, width_focus = 30 } },
+      config = function(_, opts)
+          require("mini.files").setup(opts)
+          vim.keymap.set("n", "<leader>e", function()
+              local mf = require("mini.files")
+              if not mf.close() then mf.open(vim.api.nvim_buf_get_name(0), true) end
+          end, { desc = "Toggle explorer" })
+      end },
+
+    -- Syntax highlighting
+    { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate",
+      config = function()
+          ---@diagnostic disable-next-line: missing-fields
+          require("nvim-treesitter.configs").setup({
+              ensure_installed = { "python", "bash", "lua", "yaml", "json", "dockerfile", "toml" },
+              auto_install     = true,
+              highlight        = { enable = true },
+              indent           = { enable = true },
+          })
+      end },
+
+    -- Git signs in gutter
+    { "lewis6991/gitsigns.nvim", event = { "BufReadPost", "BufNewFile" }, opts = {} },
+
+    -- LSP — pyright for Python (brew install pyright)
+    { "neovim/nvim-lspconfig", event = { "BufReadPre", "BufNewFile" },
+      config = function()
+          require("lspconfig").pyright.setup({
+              settings = { python = { analysis = { typeCheckingMode = "basic" } } },
+          })
+      end },
+
+    -- Autocomplete — blink.cmp (pre-built binary, no build step needed)
+    { "saghen/blink.cmp", version = "1.*", event = { "InsertEnter", "LspAttach" },
+      opts = {
+          keymap  = {
+              preset    = "default",
+              ["<CR>"]  = { "select_and_accept", "fallback" },
+              ["<C-Space>"] = { "show", "fallback" },
+          },
+          sources = { default = { "lsp", "path", "buffer" } },
+      } },
+
+}, {
+    ui               = { border = "rounded" },
+    install          = { colorscheme = { "catppuccin", "habamax" } },
+    checker          = { enabled = false },
+    change_detection = { notify = false },
+})
+
+-- Auto-open explorer on startup: no args → cwd, dir arg → that dir
 vim.api.nvim_create_autocmd("VimEnter", {
+    once = true,
     callback = function()
         if vim.fn.argc() == 0 then
-            vim.cmd("Lexplore")
+            require("mini.files").open(vim.uv.cwd(), false)
         elseif vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
-            vim.cmd("Lexplore " .. vim.fn.fnameescape(vim.fn.argv(0)))
+            require("mini.files").open(vim.fn.argv(0), false)
         end
     end,
 })
 
--- When the last file buffer is closed and only netrw remains, open a new empty buffer
--- so the layout stays intact (explorer left, content right)
-vim.api.nvim_create_autocmd("BufEnter", {
-    callback = function()
-        if vim.bo.filetype == "netrw" and vim.fn.winnr("$") == 1 then
-            vim.cmd("enew")
-        end
-    end,
+-- Highlight yanked text briefly
+vim.api.nvim_create_autocmd("TextYankPost", {
+    callback = function() vim.highlight.on_yank({ timeout = 200 }) end,
 })
 
--- LSP — Python via pyright (install: brew install pyright)
-vim.api.nvim_create_autocmd("FileType", {
-    pattern  = { "python" },
-    callback = function()
-        vim.lsp.start({
-            name     = "pyright",
-            cmd      = { "pyright-langserver", "--stdio" },
-            root_dir = vim.fs.root(0, { "pyproject.toml", "setup.py", "requirements.txt", ".git" }) or vim.fn.getcwd(),
-            settings = { python = { analysis = { typeCheckingMode = "basic" } } },
-        })
-    end,
-})
-
+-- LSP keymaps when a server attaches
 vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
         local buf = args.buf
-        if vim.lsp.completion then  -- nvim 0.11+ built-in autocomplete
-            vim.lsp.completion.enable(true, args.data.client_id, buf, { autotrigger = true })
-        else
-            vim.keymap.set("i", "<C-Space>", "<C-x><C-o>", { buffer = buf })
-        end
         local map = function(k, f) vim.keymap.set("n", k, f, { buffer = buf, silent = true }) end
         map("K",          vim.lsp.buf.hover)
         map("gd",         vim.lsp.buf.definition)
@@ -151,8 +182,8 @@ vim.keymap.set("n", "<C-l>", "<C-w>l")
 
 vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("v", ">", ">gv")
-vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
-vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 vim.keymap.set("n", "<leader>bn", "<cmd>bnext<CR>",     { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Prev buffer" })

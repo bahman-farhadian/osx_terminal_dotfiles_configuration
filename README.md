@@ -81,19 +81,24 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 
 ## Neovim
 
-Zero-plugin config (`nvim/init.lua`). `<leader>` = Space.
+Minimal plugin config (`nvim/init.lua`). `<leader>` = Space.  
+Plugins install automatically on first launch (requires internet + `git`).
+
+**Plugins:** `catppuccin` · `mini.files` · `nvim-treesitter` · `gitsigns` · `nvim-lspconfig` · `blink.cmp`
 
 | Key | Action |
 |---|---|
-| `<leader>e` | Toggle side file explorer (netrw tree) |
+| `<leader>e` | Toggle file explorer (mini.files) |
 | `<leader>w` / `<leader>q` | Save / Quit |
 | `<Esc>` | Clear search highlight |
 | `Ctrl+h/j/k/l` | Focus split |
 | `<leader>bn/bp/bd` | Next / prev / delete buffer |
 | `v` + `<`/`>` | Indent, stay in visual mode |
 | `v` + `J`/`K` | Move selection down / up |
+| `K` / `gd` / `gr` | LSP hover / definition / references |
+| `<leader>rn` / `<leader>ca` | LSP rename / code action |
 
-Filetype support built-in: Python, bash/sh, YAML, `.cfg`/`.conf` (dosini), `.env`, Dockerfile.
+Filetype support: Python (pyright LSP + autocomplete), bash/sh, YAML, `.cfg`/`.conf`, `.env`, Dockerfile.
 
 ---
 
