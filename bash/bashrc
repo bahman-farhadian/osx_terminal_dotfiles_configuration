@@ -166,7 +166,10 @@ PROMPT_COMMAND='_set_prompt'
 export CLICOLOR=1
 export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 
-# readline
+# readline — Tab completes; when ambiguous, cycles through options one at a time
+# (avoids the unlimited wall-of-text that bash's default list mode produces)
+bind 'TAB: menu-complete'
+bind '"\e[Z": menu-complete-backward'   # Shift+Tab goes backwards
 bind 'set completion-ignore-case on'
 bind 'set mark-symlinked-directories on'
 bind 'set colored-stats on'
