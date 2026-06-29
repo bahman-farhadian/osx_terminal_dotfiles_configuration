@@ -167,10 +167,9 @@ export CLICOLOR=1
 export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 
 # readline
-bind 'set show-all-if-ambiguous on'    # single Tab shows all matches
-bind 'set completion-ignore-case on'   # case-insensitive matching
+bind 'set completion-ignore-case on'
 bind 'set mark-symlinked-directories on'
-bind 'set colored-stats on'            # colour files by type in completion list
+bind 'set colored-stats on'
 bind 'set colored-completion-prefix on'
 
 # bash-completion@2 — load before tool completions
