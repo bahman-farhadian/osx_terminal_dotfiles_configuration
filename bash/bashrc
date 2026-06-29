@@ -166,15 +166,6 @@ PROMPT_COMMAND='_set_prompt'
 export CLICOLOR=1
 export LSCOLORS='ExGxFxDxCxDxDxhbhbExEx'
 
-# readline — Tab completes; when ambiguous, cycles through options one at a time
-# (avoids the unlimited wall-of-text that bash's default list mode produces)
-bind 'TAB: menu-complete'
-bind '"\e[Z": menu-complete-backward'   # Shift+Tab goes backwards
-bind 'set completion-ignore-case on'
-bind 'set mark-symlinked-directories on'
-bind 'set colored-stats on'
-bind 'set colored-completion-prefix on'
-
 # bash-completion@2 — load before tool completions
 _bc="${HOMEBREW_PREFIX:-/opt/homebrew}/etc/profile.d/bash_completion.sh"
 [ -r "$_bc" ] && . "$_bc"
@@ -207,9 +198,13 @@ _bash_load_completions() {
                 comp_fn=$(complete -p "$tool" 2>/dev/null | sed -n 's/.*-F \([^ ]*\).*/\1/p')
                 if [ -n "$comp_fn" ]; then
                     wrapper_fn="_nodesc_${tool}"
+                    # Redirect stdout to /dev/null — cobra completions print
+                    # descriptions directly to stdout in addition to setting
+                    # COMPREPLY; suppressing stdout prevents the column dump.
+                    # COMPREPLY is a variable so it is unaffected by redirection.
                     eval "
 ${wrapper_fn}() {
-    ${comp_fn} \"\$@\"
+    { ${comp_fn} \"\$@\"; } > /dev/null
     _strip_comp_descriptions
 }
 "
@@ -264,3 +259,11 @@ fi
 
 # tmux shortcut
 alias t='tmux'
+
+# readline — set AFTER all completion loading so nothing can override these
+bind 'TAB: menu-complete'             # Tab completes then cycles; no wall of text
+bind '"\e[Z": menu-complete-backward' # Shift+Tab cycles backwards
+bind 'set completion-ignore-case on'
+bind 'set mark-symlinked-directories on'
+bind 'set colored-stats on'
+bind 'set colored-completion-prefix on'
