@@ -44,6 +44,9 @@ alias copy='pbcopy'
 alias paste='pbpaste'
 cpy() { tee >(pbcopy); }  # pipe filter: cmd 2>&1 | cpy
 
+# Virtualisation
+alias virt='GTK_THEME=Adwaita:dark virt-manager --no-fork'
+
 # Homebrew
 alias brewup='brew update && brew upgrade && brew upgrade --cask && brew cleanup && brew doctor'
 alias brewls='brew list'
