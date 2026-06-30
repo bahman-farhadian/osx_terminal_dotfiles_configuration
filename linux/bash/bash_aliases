@@ -14,7 +14,7 @@ alias la='ls -A'
 
 # General
 alias c='clear'
-alias b='btop'
+command -v btop &>/dev/null && alias b='btop' || { command -v htop &>/dev/null && alias b='htop'; }
 alias reload='exec $SHELL -l'
 alias path='echo $PATH | tr ":" "\n"'
 alias pubip='curl -s https://ipwho.is/ | jq .'

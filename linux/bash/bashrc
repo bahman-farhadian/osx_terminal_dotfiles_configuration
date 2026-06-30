@@ -152,7 +152,7 @@ PROMPT_COMMAND='_set_prompt'
 
 # ls colours — Linux uses --color=auto and LS_COLORS (set by dircolors)
 alias ls='ls --color=auto'
-[ -x /usr/bin/dircolors ] && eval "$(dircolors -b)"
+command -v dircolors &>/dev/null && eval "$(dircolors -b)"
 
 # bash-completion — package name varies by distro:
 #   Debian/Ubuntu: bash-completion   Fedora/RHEL: bash-completion

@@ -13,6 +13,52 @@ _hdr()  { printf '\n%s\n' "$*"; }
 cp_file() { mkdir -p "$(dirname "$2")"; cp "$1" "$2"; _ok "applied: $2"; }
 sudo_cp() { sudo mkdir -p "$(dirname "$2")"; sudo cp "$1" "$2"; _ok "applied (root): $2"; }
 
+# Detect package manager (Debian/Ubuntu or Red Hat/Fedora only)
+_pkg_cmd() {
+    local pkgs="$1"
+    if command -v apt-get &>/dev/null; then
+        echo "sudo apt-get install -y $pkgs"
+    elif command -v dnf &>/dev/null; then
+        echo "sudo dnf install -y $pkgs"
+    elif command -v yum &>/dev/null; then
+        echo "sudo yum install -y $pkgs"
+    else
+        _warn "unsupported distro — install manually: $pkgs"
+        echo ""
+    fi
+}
+
+_check_prereqs() {
+    _hdr "prerequisites"
+    local missing=() cmd
+
+    for cmd in bash tmux vim git curl jq tree python3 openssl; do
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
+    done
+
+    local bc_ok=false
+    { [ -r /usr/share/bash-completion/bash_completion ] || \
+      [ -r /etc/bash_completion ]; } && bc_ok=true
+
+    if [ ${#missing[@]} -eq 0 ] && $bc_ok; then
+        _ok "all required packages present"
+        return
+    fi
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        _warn "missing: ${missing[*]}"
+        local cmd; cmd="$(_pkg_cmd "${missing[*]}")"
+        [ -n "$cmd" ] && printf '  Run: %s\n' "$cmd"
+    fi
+    if ! $bc_ok; then
+        _warn "bash-completion not found (Tab completions will not load)"
+        local cmd; cmd="$(_pkg_cmd "bash-completion")"
+        [ -n "$cmd" ] && printf '  Run: %s\n' "$cmd"
+    fi
+}
+
+_check_prereqs
+
 printf '\nConfigure root user as well? [y/N]: '
 read -r _ans
 HAS_SUDO=false
@@ -43,9 +89,10 @@ _upsert_ssh() {
     local config="$1"
     grep -qF 'AddKeysToAgent 5m' "$config" 2>/dev/null && return 0
     if grep -qF 'StrictHostKeyChecking no' "$config" 2>/dev/null; then
-        local py
-        py=$(mktemp)
-        cat > "$py" << 'PYEOF'
+        if command -v python3 &>/dev/null; then
+            local py
+            py=$(mktemp)
+            cat > "$py" << 'PYEOF'
 import sys, re
 path = sys.argv[1]
 try: text = open(path).read()
@@ -53,8 +100,11 @@ except FileNotFoundError: text = ''
 text = re.sub(r'\nHost \*\n(?:[ \t][^\n]*\n?)*', '', '\n' + text).strip()
 open(path, 'w').write(text + '\n' if text else '')
 PYEOF
-        python3 "$py" "$config"
-        rm -f "$py"
+            python3 "$py" "$config"
+            rm -f "$py"
+        else
+            _warn "python3 not found — skipping SSH dedup (stale Host * block left in place)"
+        fi
     fi
     printf '\n' >> "$config"
     cat "$REPO/ssh/config" >> "$config"
@@ -93,6 +143,15 @@ BASH_BIN="$(command -v bash)"
 if [ -z "$BASH_BIN" ]; then
     _warn "bash not found in PATH — install it first"
 else
+    # chsh requires the shell to be listed in /etc/shells
+    if ! grep -qxF "$BASH_BIN" /etc/shells 2>/dev/null; then
+        if [ "$HAS_SUDO" = true ]; then
+            echo "$BASH_BIN" | sudo tee -a /etc/shells > /dev/null
+            _ok "registered $BASH_BIN in /etc/shells"
+        else
+            _warn "$BASH_BIN not in /etc/shells — chsh may fail (add it with sudo)"
+        fi
+    fi
     if chsh -s "$BASH_BIN" "$USER" 2>/dev/null; then
         _ok "$USER: shell → $BASH_BIN"
     elif command -v usermod &>/dev/null && [ "$HAS_SUDO" = true ]; then
