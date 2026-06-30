@@ -45,8 +45,7 @@ _SKY_BG='62;87;103'
 _OVERLAY_BG='53;55;72'
 _RST='\[\e[0m\]'
 
-# Powerline glyphs — rendered by the SSH client terminal, not the server.
-# Requires a Nerd Font on the connecting machine.
+# No Powerline glyphs — plain colour-block transitions work from any terminal.
 _SEP=''
 _BRANCH=''
 
