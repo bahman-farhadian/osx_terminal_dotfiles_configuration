@@ -45,8 +45,8 @@ _SKY_BG='62;87;103'
 _OVERLAY_BG='53;55;72'
 _RST='\[\e[0m\]'
 
-# No Powerline glyphs — plain colour-block transitions work from any terminal.
-_SEP=''
+# ▶ is standard Unicode (U+25B6) — no Nerd Font needed, renders in any modern terminal.
+_SEP='▶'
 _BRANCH=''
 
 _set_prompt() {
@@ -81,7 +81,7 @@ _set_prompt() {
         stash_count=$(git -C "$PWD" stash list 2>/dev/null | wc -l | awk '{print $1}')
         [ "$stash_count" -gt 0 ] && git_stash=" {${stash_count}}"
 
-        git_text="${_BRANCH} ${git_branch}${git_dirty}${git_ab}${git_stash}"
+        git_text="${_BRANCH:+${_BRANCH} }${git_branch}${git_dirty}${git_ab}${git_stash}"
     else
         git_bg="$_OVERLAY_BG"
         git_text="not git repo"
