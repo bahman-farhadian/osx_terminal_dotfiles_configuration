@@ -170,3 +170,22 @@ alias count='ls -1 | wc -l'
 alias t2='tree -L 2'
 alias t3='tree -L 3'
 alias th='tree -L 2 -a -I ".git|.venv|__pycache__|node_modules|*.pyc"'
+
+# >>> dotfiles: GNU Coreutils >>>
+# Homebrew exposes Linux-compatible command names via gnubin. Put it first so
+# timeout, sha256sum, readlink, and similar commands work without a g-prefix.
+# The opt path is stable across Homebrew upgrades.
+_dotfiles_coreutils_bin="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/coreutils/libexec/gnubin"
+if [ -d "$_dotfiles_coreutils_bin" ]; then
+    case ":$PATH:" in
+        *":$_dotfiles_coreutils_bin:"*) ;;
+        *) export PATH="$_dotfiles_coreutils_bin:$PATH" ;;
+    esac
+    # Upgrade this repository's legacy macOS ls alias, but do not replace a
+    # user's own ls customization when this block is merged into an existing file.
+    if [ "$(alias ls 2>/dev/null)" = "alias ls='ls -G'" ]; then
+        alias ls='ls --color=auto'
+    fi
+fi
+unset _dotfiles_coreutils_bin
+# <<< dotfiles: GNU Coreutils <<<

@@ -13,6 +13,49 @@ _hdr()  { printf '\n%s\n' "$*"; }
 cp_file() { mkdir -p "$(dirname "$2")"; cp "$1" "$2"; _ok "applied: $2"; }
 sudo_cp() { sudo mkdir -p "$(dirname "$2")"; sudo cp "$1" "$2"; _ok "applied (root): $2"; }
 
+# Add or refresh only the project-owned Coreutils block. Existing aliases stay
+# untouched, including aliases the user added outside these exact markers.
+upsert_coreutils_aliases() {
+    local config="$1" clean block
+    clean=$(mktemp)
+    block=$(mktemp)
+    awk '
+        $0 == "# >>> dotfiles: GNU Coreutils >>>" { in_block = 1; next }
+        $0 == "# <<< dotfiles: GNU Coreutils <<<" { in_block = 0; next }
+        !in_block { lines[++count] = $0 }
+        END {
+            while (count > 0 && lines[count] == "") count--
+            for (line = 1; line <= count; line++) print lines[line]
+        }
+    ' "$config" 2>/dev/null > "$clean"
+    awk '
+        $0 == "# >>> dotfiles: GNU Coreutils >>>" { in_block = 1 }
+        in_block { print }
+        $0 == "# <<< dotfiles: GNU Coreutils <<<" { exit }
+    ' "$REPO/bash/bash_aliases" > "$block"
+    printf '\n' >> "$clean"
+    cat "$block" >> "$clean"
+    if cmp -s "$config" "$clean"; then
+        rm -f "$clean" "$block"
+        return 0
+    fi
+    cp "$clean" "$config"
+    rm -f "$clean" "$block"
+    return 1
+}
+
+install_bash_aliases() {
+    local config="$1"
+    mkdir -p "$(dirname "$config")"
+    if [ ! -e "$config" ]; then
+        cp_file "$REPO/bash/bash_aliases" "$config"
+    elif upsert_coreutils_aliases "$config"; then
+        _ok "GNU Coreutils aliases already present in $config"
+    else
+        _ok "GNU Coreutils aliases applied to $config"
+    fi
+}
+
 # Use Homebrew bash (5.x) — required for bash-completion@2. Fall back to /bin/bash only if missing.
 BREW_BASH=""
 for _p in /opt/homebrew/bin/bash /usr/local/bin/bash; do
@@ -26,6 +69,10 @@ fi
 _bc="${HOMEBREW_PREFIX:-/opt/homebrew}/etc/profile.d/bash_completion.sh"
 [ -r "$_bc" ] || _warn "bash-completion@2 not found — run: brew install bash-completion@2"
 unset _bc
+
+_coreutils_bin="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/coreutils/libexec/gnubin"
+[ -d "$_coreutils_bin" ] || _warn "GNU Coreutils not found — run: brew install coreutils"
+unset _coreutils_bin
 
 printf '\nConfigure root user as well? [y/N]: '
 read -r _ans
@@ -41,11 +88,24 @@ fi
 _hdr "bash"
 cp_file "$REPO/bash/bash_profile" "$HOME/.bash_profile"
 cp_file "$REPO/bash/bashrc"       "$HOME/.bashrc"
-cp_file "$REPO/bash/bash_aliases" "$HOME/.bash_aliases"
+install_bash_aliases "$HOME/.bash_aliases"
 if [ "$HAS_SUDO" = true ]; then
     sudo_cp "$REPO/bash/bash_profile" /var/root/.bash_profile
     sudo_cp "$REPO/bash/bashrc"       /var/root/.bashrc
-    sudo_cp "$REPO/bash/bash_aliases" /var/root/.bash_aliases
+    _rtmp=$(mktemp)
+    sudo cat /var/root/.bash_aliases 2>/dev/null > "$_rtmp" || true
+    if [ -s "$_rtmp" ]; then
+        if upsert_coreutils_aliases "$_rtmp"; then
+            _ok "GNU Coreutils aliases already present in /var/root/.bash_aliases"
+        else
+            sudo mkdir -p /var/root
+            sudo cp "$_rtmp" /var/root/.bash_aliases
+            _ok "GNU Coreutils aliases applied to /var/root/.bash_aliases"
+        fi
+    else
+        sudo_cp "$REPO/bash/bash_aliases" /var/root/.bash_aliases
+    fi
+    rm -f "$_rtmp"
 fi
 
 _hdr "tmux"

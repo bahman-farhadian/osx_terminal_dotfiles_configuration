@@ -37,7 +37,7 @@ dotfiles/
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Required tools
-brew install bash bash-completion@2 tmux git git-lfs gh vim \
+brew install bash bash-completion@2 coreutils tmux git git-lfs gh vim \
              btop jq yq curl wget tree
 
 # Ghostty — download .dmg from ghostty.org
@@ -54,9 +54,13 @@ brew install --cask font-jetbrains-mono-nerd-font
 exec bash      # reload current session
 ```
 
-The script copies every dotfile into place and sets bash as the default shell
+The script copies each managed dotfile into place and sets bash as the default shell
 for both your user and root. It will ask whether to configure root — enter `y`
 and your sudo password, or press Enter to skip root.
+
+If `~/.bash_aliases` already exists, the installer preserves it and only
+upserts the marked GNU Coreutils section it owns. This is also how root's alias
+file is handled when root configuration is selected.
 
 SSH settings are written to `~/.ssh/config` — stale blocks from previous installs are replaced automatically, fresh installs append.
 
@@ -137,6 +141,10 @@ Git badge suffixes: `*` unstaged · `+` staged · `⇡N` ahead · `⇣N` behind 
 | `password` | random base64-48 string |
 | `pubip` / `privip` | external / private IP |
 | `cpy` | pipe filter — `cmd 2>&1 \| cpy` prints and copies output |
+
+**GNU Coreutils (macOS):** Homebrew's `coreutils` `gnubin` directory is placed
+first in `PATH`, so GNU/Linux names work without the `g` prefix—for example
+`timeout`, `sha256sum`, `readlink`, `stat`, and `sort`.
 
 **Git:** `g gs ga gaa gc gca gco gcob gb gl gd gds gp gpf gpl gpr gst gstp gstl gf grb gcp gwip`
 
