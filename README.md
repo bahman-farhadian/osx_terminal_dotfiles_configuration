@@ -90,8 +90,8 @@ sudo cp tmux/tmux.conf    /var/root/.tmux.conf
 ## Prompt
 
 ```
-╭─ [bash]  venv:name  user@host  k8s:cluster  branch*⇡1  ~/path  Local ...  UTC ...
-╰─ $
+─ [bash]  venv:name  user@host  k8s:cluster  branch*⇡1  ~/path  Local ...  UTC ...
+$
 ```
 
 Git badge suffixes: `*` unstaged · `+` staged · `⇡N` ahead · `⇣N` behind · `{N}` stashes.  

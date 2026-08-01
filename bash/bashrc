@@ -144,7 +144,7 @@ _set_prompt() {
     seg_bg+=("$_LAVENDER_BG"); seg_fg+=("$_TEXT"); seg_text+=(" Local ${local_time} ")
     seg_bg+=("$_TEAL_BG");     seg_fg+=("$_TEXT");     seg_text+=(" UTC ${utc_time} ")
 
-    line1="\[\e[38;2;${_OVERLAY}m\]╭─${_RST} \[\e[38;2;${user_fg}m\][bash]${_RST} "
+    line1="\[\e[38;2;${_OVERLAY}m\]─${_RST} \[\e[38;2;${user_fg}m\][bash]${_RST} "
 
     prev_bg=""
     for i in "${!seg_bg[@]}"; do
@@ -158,7 +158,7 @@ _set_prompt() {
     done
     line1+="\[\e[49m\]\[\e[38;2;${prev_bg}m\]${_SEP}${_RST}"
 
-    PS1="${line1}\n\[\e[38;2;${_OVERLAY}m\]╰─${_RST} \[\e[38;2;${sym_col}m\]${sym}${_RST} "
+    PS1="${line1}\n\[\e[38;2;${sym_col}m\]${sym}${_RST} "
 }
 PROMPT_COMMAND='_set_prompt'
 
