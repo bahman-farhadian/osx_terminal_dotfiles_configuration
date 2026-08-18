@@ -120,13 +120,16 @@ Git badge suffixes: `*` unstaged · `+` staged · `⇡N` ahead · `⇣N` behind 
 | `Shift+←` / `Shift+→` | Previous / next window |
 | `Option+W/A/S/D` | Pane focus (no prefix) |
 | `Ctrl+b` + `h/j/k/l` | Pane focus (prefix) |
+| `Ctrl+b` + `"` | Create a stacked pane; all pane heights are equalized |
+| `Ctrl+b` + `x` | Close a pane; remaining pane heights are equalized |
+| `Ctrl+d` | Exit the shell; remaining local pane heights are equalized |
 | `fn+↑` / `fn+↓` | Enter / scroll copy-mode |
 | `q` / `Esc` | Exit copy-mode |
 | `Ctrl+b @` | Toggle synchronize-panes — borders turn red |
 | `Ctrl+b $` | Rename session |
 | `Option+1–5` | Even-H / Even-V / Main-H / Main-V / Tiled |
 | `Option+6` / `Option+7` | Next / previous layout |
-| `F12` | Toggle passthrough for nested tmux over SSH |
+| `F12` | Toggle nested-tmux passthrough; Option/Alt layout and pane keys are forwarded to the remote tmux |
 
 ---
 
